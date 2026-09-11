@@ -20,6 +20,16 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+.site-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.site-shell > footer {
+  margin-top: 0;
+}
+
 button, a { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }
 :focus-visible { outline: 3px solid #f8c400; outline-offset: 3px; }

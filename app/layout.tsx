@@ -10,13 +10,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Navbar />
+        <div className="site-shell">
+          <Navbar />
 
-        {/* Har page ka content */}
-        {children}
+          {/* Har page ka content */}
+          {children}
 
-        {/* Footer */}
-        <Footer />
+          {/* Footer */}
+          <Footer />
+        </div>
 
       </body>
     </html>
