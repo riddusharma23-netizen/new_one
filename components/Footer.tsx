@@ -8,6 +8,7 @@ import {
   Send,
   ChevronRight,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -39,17 +40,20 @@ to-[#FF6A00]
         relative
         max-w-[1450px]
         mx-auto
-        px-6
-        lg:px-10
-        py-20
+          px-5
+          py-14
+          sm:px-8
+          sm:py-16
+          lg:px-10
+          lg:py-20
         "
       >
         <div
           className="
           grid
-          gap-14
+          gap-10
           md:grid-cols-2
-          lg:grid-cols-4
+          lg:grid-cols-5
           "
         >
          
@@ -133,7 +137,6 @@ to-[#FF6A00]
                   key={i}
                   className="
                   flex
-               
                   items-center
                   gap-5
                   "
@@ -155,7 +158,7 @@ to-[#FF6A00]
                     <item.icon size={22} />
                   </div>
 
-                  <p className="text-md">
+                  <p className="min-w-0 break-words text-sm sm:text-base">
                     {item.text}
                   </p>
                 </div>
@@ -167,28 +170,23 @@ to-[#FF6A00]
   <FooterLinks
             title="Important Links"
             links={[
-               "Account",
-              "Students",
-              "Schedules",
-              "Kindergarten",
-          
+              { label: "Account", href: "/account-dashboard" },
+              { label: "Student Corner", href: "/student-corner" },
+              { label: "Schedules", href: "/schedules" },
+              { label: "Departments", href: "/department" },
             ]}
           />
           <FooterLinks
             title="Our School"
-
             links={[
-              " Home ",
-              "About Us",
-              "Cultural",
-              "Our Story",
-                 "Contact Us",
-             
-              
+              { label: "Home", href: "/" },
+              { label: "About Us", href: "/about" },
+              { label: "Our Faculty", href: "/teachers" },
+              { label: "Contact Us", href: "/contact" },
             ]}
           />
 
-        
+          <StudentResources />
 
           {/* Newsletter */}
           <div>
@@ -280,7 +278,7 @@ function Title({ title }: { title: string }) {
   return (
     <div>
 
-      <h3 className="text-3xl font-black">
+      <h3 className="text-2xl font-black sm:text-3xl">
         {title}
       </h3>
 
@@ -311,7 +309,13 @@ function Title({ title }: { title: string }) {
   );
 }
 
-function FooterLinks({ title, links }: { title: string; links: string[] }) {
+function FooterLinks({
+  title,
+  links,
+}: {
+  title: string;
+  links: { label: string; href: string }[];
+}) {
   return (
     <div>
 
@@ -319,16 +323,18 @@ function FooterLinks({ title, links }: { title: string; links: string[] }) {
 
       <div className="mt-10 space-y-3">
 
-        {links.map((item: string) => (
-          <a
-            key={item}
-            href="#"
+        {links.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
             className="
             flex
             items-center
             gap-3
 
-            text-lg
+            text-sm
+            sm:text-base
+            md:text-lg
 
             hover:text-[#F8F000]
 
@@ -341,12 +347,40 @@ function FooterLinks({ title, links }: { title: string; links: string[] }) {
               color="#F8F400"
             />
 
-            {item}
-          </a>
+            {item.label}
+          </Link>
         ))}
 
       </div>
 
+    </div>
+  );
+}
+
+function StudentResources() {
+  const links = [
+    { label: "Student Corner", href: "/student-corner" },
+    { label: "Admission Guidelines", href: "/student-corner/admission-guidelines" },
+    { label: "Board Results", href: "/student-corner/board-result" },
+    { label: "Results", href: "/student-corner/result" },
+    { label: "Achievements", href: "/student-corner/achievent" },
+  ];
+
+  return (
+    <div className="rounded-2xl border border-white/20 bg-black/10 p-5 backdrop-blur-sm">
+      <Title title="Student Corner" />
+      <div className="mt-6 space-y-2">
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-semibold transition hover:bg-white/15 hover:text-[#fff3a6]"
+          >
+            <span className="h-2 w-2 shrink-0 rounded-full bg-[#f8f000]" />
+            {link.label}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

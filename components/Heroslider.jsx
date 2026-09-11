@@ -34,7 +34,9 @@ export default function HeroSlider() {
     const timer = setInterval(() => {
       setTransition(true);
 
-      setActive((prev) => prev + 1);
+      setActive((prev) =>
+        prev >= slides.length + 1 ? 1 : prev + 1
+      );
     }, 4000);
 
     return () => clearInterval(timer);
@@ -42,7 +44,7 @@ export default function HeroSlider() {
 
   const handleTransitionEnd = () => {
     // Last clone par pahunchne ke baad bina animation first slide
-    if (active === slides.length + 1) {
+    if (active >= slides.length + 1) {
       setTransition(false);
       setActive(1);
     }
