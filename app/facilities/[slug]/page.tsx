@@ -284,12 +284,12 @@ export default async function FacilityPage({
 
               <div className="relative h-[420px] overflow-hidden rounded-[35px] shadow-[0_25px_60px_rgba(7,47,96,.15)]">
 
-                <Image
-                  src={facility.image}
-                  alt={facility.title}
-                  fill
-                  className="object-cover transition duration-700 hover:scale-110"
-                />
+              <Image
+  src={facility.contentImage ?? facility.image}
+  alt={facility.title}
+  fill
+  className="object-cover transition duration-700 hover:scale-110"
+/>
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
@@ -419,7 +419,7 @@ export default async function FacilityPage({
         "
       >
         Discover the learning opportunities, support services and
-        facilities available at Champi Devi Inter College.
+        facilities available at SMT Champi Devi Inter College.
       </p>
 
     </div>

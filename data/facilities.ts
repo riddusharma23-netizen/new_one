@@ -49,7 +49,7 @@ export const facilities = [
     heroDescription:
       "Educational and spiritual tours give students opportunities to explore important places, understand culture and learn through real-world experiences.",
 
-    image: "/why/clinic4.jpg",
+    image: "/why/scho.png",
 
     label: "Explore & Learn",
 
@@ -124,61 +124,69 @@ highly qualified lecturers providing personalized academic attention to every st
     ],
   },
 
-  {
-    id: 5,
-    slug: "extra-classes",
-    title: "Extra Classes",
-    icon: "BookOpenCheck",
+ {
+  id: 5,
+  slug: "extra-classes",
+  title: "Extra Classes",
+  icon: BookOpenCheck,
 
-    description:
-      "Regular extra classes to support weak students in overcoming academic difficulties and ensure top performance in board exams.",
+  description:
+    "Regular extra classes to support weak students in overcoming academic difficulties and ensure top performance in board exams.",
 
-    heroDescription:
-      "Extra classes help students strengthen their concepts, improve performance and achieve their academic goals.",
+  heroDescription:
+    "Extra classes help students strengthen their concepts, improve performance and achieve their academic goals.",
 
-    image: "/why/clinic4.jpg",
+  // TOP HERO IMAGE
+  image: "/why/ext-class.png",
 
-    label: "Academic Support",
+  // SIDE / MIDDLE IMAGE
+  contentImage: "/why/sc4.jpg",
 
-    heading: "Helping Students Learn Better",
+  label: "Academic Support",
 
-    content:
-      "Extra classes provide additional opportunities for students to revise lessons, ask questions and develop stronger understanding of important concepts.",
+  heading: "Helping Students Learn Better",
 
-    points: [
-      "Extra support for difficult subjects",
-      "Concept clarification",
-      "Additional practice sessions",
-      "Academic performance improvement",
-    ],
-  },
+  content:
+    "Extra classes provide additional opportunities for students to revise lessons, ask questions and develop stronger understanding of important concepts.",
 
-  {
-    id: 6,
-    slug: "Scholarship",
-    title: "Scholarship",
-    icon: GraduationCap,
+  points: [
+    "Extra support for difficult subjects",
+    "Concept clarification",
+    "Additional practice sessions",
+    "Academic performance improvement",
+  ],
+},
 
-    description:
-      "Scholarship opportunities for talented and hardworking students.",
+{
+  id: 6,
+  slug: "Scholarship",
+  title: "Scholarship",
+  icon: GraduationCap,
 
-    heroDescription:
-      "Scholarship opportunities encourage talented and hardworking students to continue their education and achieve their dreams.",
+  description:
+    "Scholarship opportunities for talented and hardworking students.",
 
-    image: "/why/clinic4.jpg",
+  heroDescription:
+    "Scholarship opportunities encourage talented and hardworking students to continue their education and achieve their dreams.",
 
-    label: "Scholarship Program",
+  // TOP HERO IMAGE
+  image: "/why/scho.png",
 
-    heading: "Rewarding Talent & Hard Work",
+  // MIDDLE SECTION IMAGE
+  contentImage: "/why/scho2.png",
 
-    content:
-      "Our scholarship initiative is designed to motivate students who demonstrate strong academic performance, dedication and commitment to their education.",
+  label: "Scholarship Program",
 
-    points: [
-      "Encourages academic excellence",
-      "Supports deserving students",
-      "Motivates students to achieve higher goals",
-      "Helps support quality education",
-    ],
-  },
+  heading: "Rewarding Talent & Hard Work",
+
+  content:
+    "Our scholarship initiative is designed to motivate students who demonstrate strong academic performance, dedication and commitment to their education.",
+
+  points: [
+    "Encourages academic excellence",
+    "Supports deserving students",
+    "Motivates students to achieve higher goals",
+    "Helps support quality education",
+  ],
+},
 ];

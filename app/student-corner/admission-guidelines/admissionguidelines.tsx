@@ -43,7 +43,7 @@ export default function AdmissionGuidelines() {
         />
 
         {/* Top Dates Strip */}
-        <div className="mb-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {/* <div className="mb-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {importantDates.map((item) => (
             <div
               key={item.label}
@@ -69,7 +69,7 @@ export default function AdmissionGuidelines() {
               </p>
             </div>
           ))}
-        </div>
+        </div> */}
 
       {/* Main Layout */}
 <div className="grid items-start gap-10 lg:grid-cols-[0.85fr_1.15fr] xl:gap-16">

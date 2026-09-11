@@ -131,12 +131,12 @@ export const whyChooseUs = [
 
   button: "Explore More",
 
-  image: "/why/digi2.png",
+  image: "/why/scho.png",
 
   gallery: [
-    "/why/digital/primary.jpg",
-    "/why/digital/digital-2.jpg",
-    "/why/digital/digital-3.jpg",
+    "/why/scho.png",
+    "/why/scho1.png",
+    "/why/scho4.png",
     "/why/digital/digital-4.jpg",
   ],
 
@@ -144,10 +144,9 @@ export const whyChooseUs = [
     {
       title: "Supporting Higher Education",
 
-      content:
-        "We encourage our students to continue their academic journey by providing financial assistance for college and university education.",
+content: `After completing their studies at Smt. Champi Devi Inter College, students pursuing a degree, diploma, professional or technical course can receive financial support. The school provides up to 50% of the eligible annual course fee each year throughout the duration of the course.`,
 
-      image: "/why/digital/class-1.jpg",
+      image: "/why/scho1.png",
 
       points: [
         "Up to 50% Tuition Fee Support",
@@ -161,9 +160,11 @@ export const whyChooseUs = [
       title: "Empowering Our Alumni",
 
       content:
-        "Our scholarship initiative helps deserving alumni reduce financial barriers and confidently pursue their academic and career goals.",
+        `Our commitment to students continues even after they leave school. Through our higher education scholarship support, deserving alumni of Smt. Champi Devi Inter College can receive up to half of their annual course fee each year while pursuing further studies.
 
-      image: "/why/digital/class-2.jpg",
+Whether a student chooses a university degree, diploma, technical education, vocational program, or professional course, this support is intended to help them complete their full course, build a successful career, and move confidently toward a better future.`,
+
+      image: "/why/scho2.png",
 
       points: [
         "Financial Assistance",
@@ -290,6 +291,8 @@ export const whyChooseUs = [
   },
 
   //affordable-low-fees
+
+
     {
     id: 6,
     slug: "Affordable-low-fees",
@@ -301,48 +304,48 @@ export const whyChooseUs = [
 
     button: "Explore More",
 
-    image: "/why/clinic4.jpg",
+    image: "/why/digital/gallery1.png",
 
     gallery: [
-      "/why/digital/primary.jpg",
+      "/why/digital/gallery1.png",
       "/why/digital/digital-2.jpg",
       "/why/digital/digital-3.jpg",
       "/why/digital/digital-4.jpg",
     ],
 
-    sections: [
-      {
-        title: "Interactive Smart Classes",
+  sections: [
+  {
+    title: "Special Fee Support for Families",
 
-        content:
-          "Smart boards, projectors and digital content make classroom learning more engaging.",
+    content:
+      "When three children from the same family study at Smt. Champi Devi Inter College, the tuition fee of the youngest child is fully waived to reduce the financial burden on the family.",
 
-        image: "/why/digital/class-1.jpg",
+    image: "/why/digital/gallery2.png",
 
-        points: [
-          "Smart Boards",
-          "Projector Based Learning",
-          "Digital Notes",
-          "Interactive Teaching",
-        ],
-      },
-
-      {
-        title: "Technology Integration",
-
-        content:
-          "Modern digital resources help students understand concepts quickly and effectively.",
-
-        image: "/why/digital/class-2.jpg",
-
-        points: [
-          "Visual Learning",
-          "Video Lectures",
-          "Online Resources",
-          "Digital Assessments",
-        ],
-      },
+    points: [
+      "Support for families with three children",
+      "Youngest child's tuition fee waived",
+      "Reduced financial burden",
+      "Encourages continued education",
     ],
+  },
+
+  {
+    title: "Fee Concession for Needy Students",
+
+    content:
+      "Students from financially disadvantaged families can receive major fee concessions, including up to 50% reduction in the total school fee, helping them continue their education without financial hardship.",
+
+    image: "/why/ext-class.png",
+
+    points: [
+      "Up to 50% fee concession",
+      "Support for financially weak families",
+      "Affordable quality education",
+      "Equal learning opportunities",
+    ],
+  },
+],
   },
 
 //  play ground******
@@ -358,7 +361,7 @@ export const whyChooseUs = [
 
     button: "Explore More",
 
-    image: "/why/clinic4.jpg",
+    image: "/why/digital/PLA1.jpg",
 
     gallery: [
       "/why/digital/primary.jpg",
@@ -404,60 +407,60 @@ export const whyChooseUs = [
 
   //stationery
 
+{
+  id: 8,
+  slug: "subsidized-Stationery",
+  title: "Subsidized Stationery",
+  icon: MonitorSmartphone,
+
+  description:
+    "Essential books and learning materials are provided to students on a no-profit, no-loss basis to keep education affordable for every family.",
+
+  button: "Explore More",
+
+  image: "/why/clinic4.jpg",
+
+  gallery: [
+    "/why/digital/primary.jpg",
+    "/why/digital/digital-2.jpg",
+    "/why/digital/digital-3.jpg",
+    "/why/digital/digital-4.jpg",
+  ],
+
+  sections: [
     {
-    id: 8,
-    slug: "subsidized-Stationery",
-    title: "Subsidized-Stationery",
-    icon: MonitorSmartphone,
+      title: "Books at Actual Cost",
 
-    description:
-      "We provide essential stationery and learning materials to students at subsidized prices, helping make education more affordable for every family.",
+      content:
+        "Required books and study materials are provided to students at the same price at which they are purchased by the school, without adding any profit or extra margin.",
 
-    button: "Explore More",
+      image: "/why/digital/class-1.jpg",
 
-    image: "/why/clinic4.jpg",
+      points: [
+        "No-profit, no-loss pricing",
+        "Books provided at actual purchase cost",
+        "No additional profit margin",
+        "Affordable learning materials",
+      ],
+    },
 
-    gallery: [
-      "/why/digital/primary.jpg",
-      "/why/digital/digital-2.jpg",
-      "/why/digital/digital-3.jpg",
-      "/why/digital/digital-4.jpg",
-    ],
+    {
+      title: "Making Education More Affordable",
 
-    sections: [
-      {
-        title: "Interactive Smart Classes",
+      content:
+        "By providing books and essential stationery at cost price, Smt. Champi Devi Inter College helps families reduce educational expenses while ensuring students have the materials they need for their studies.",
 
-        content:
-          "Smart boards, projectors and digital content make classroom learning more engaging.",
+      image: "/why/digital/class-2.jpg",
 
-        image: "/why/digital/class-1.jpg",
-
-        points: [
-          "Smart Boards",
-          "Projector Based Learning",
-          "Digital Notes",
-          "Interactive Teaching",
-        ],
-      },
-
-      {
-        title: "Technology Integration",
-
-        content:
-          "Modern digital resources help students understand concepts quickly and effectively.",
-
-        image: "/why/digital/class-2.jpg",
-
-        points: [
-          "Visual Learning",
-          "Video Lectures",
-          "Online Resources",
-          "Digital Assessments",
-        ],
-      },
-    ],
-  },
+      points: [
+        "Reduced education expenses",
+        "Support for rural families",
+        "Essential study materials",
+        "Equal access to learning resources",
+      ],
+    },
+  ],
+},
 
 //  free medical 
 

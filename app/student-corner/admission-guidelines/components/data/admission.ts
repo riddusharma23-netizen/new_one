@@ -24,24 +24,24 @@ export const admissionGuidelinesData = {
 
   image: "/images/admission/PG8.jpg",
 
-  importantDates: [
-    {
-      label: "Admissions Open",
-      value: "01 April 2026",
-    },
-    {
-      label: "Classes Begin",
-      value: "01 April 2026",
-    },
-    {
-      label: "Result Declaration",
-      value: "30 April 2026",
-    },
-    {
-      label: "Uniform Admission Fee",
-      value: "From 01 July 2026",
-    },
-  ],
+  // importantDates: [
+  //   {
+  //     label: "Admissions Open",
+  //     value: "01 April 2026",
+  //   },
+  //   {
+  //     label: "Classes Begin",
+  //     value: "01 April 2026",
+  //   },
+  //   {
+  //     label: "Result Declaration",
+  //     value: "30 April 2026",
+  //   },
+  //   {
+  //     label: "Uniform Admission Fee",
+  //     value: "From 01 July 2026",
+  //   },
+  // ],
 
   button: {
     text: "Apply for Admission",
@@ -59,7 +59,7 @@ export const admissionGuidelinesData = {
         "All students seeking admission must fill and submit the prescribed admission application form.",
         "The application form fee is ₹100.",
         "Admissions for the academic session 2026–2027 will begin from 01 April 2026.",
-        "A minimum of 33% marks in the previous class is required for admission.",
+        "A minimum of 45% marks in the previous class is required for admission.",
         "Classes for the academic session 2026–2027 will begin from 01 April 2026.",
         "The result for the academic session 2025–2026 will be distributed to students on 30 April 2026.",
       ],
@@ -88,7 +88,7 @@ export const admissionGuidelinesData = {
         "Re-admission fee up to 30 April 2026 will be ₹100.",
         "Old students taking admission up to 20 April 2026 will receive 100% exemption from the Admission Fee.",
         "After 20 April and up to 30 April 2026, the re-admission fee will be ₹100.",
-        "From 01 July 2026, a uniform admission fee will be applicable to all students.",
+        // "From 01 July 2026, a uniform admission fee will be applicable to all students.",
       ],
     },
 
@@ -101,7 +101,7 @@ export const admissionGuidelinesData = {
       points: [
         "Students scoring a minimum of 80% marks in Class 10 and taking admission in Class 11 by 04 May 2026 will receive a bicycle free of cost.",
         "Students scoring a minimum of 75% marks in Class 10 and taking admission in Class 11 by 04 May 2026 can receive a bicycle for ₹2,000.",
-        "Free or highly subsidised bicycles will be distributed only on 04 May 2026.",
+        "Free or highly subsidised bicycles will be distributed only on 20 May 2026.",
       ],
     },
 
