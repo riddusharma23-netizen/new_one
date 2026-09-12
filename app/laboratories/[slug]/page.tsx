@@ -71,7 +71,7 @@ export default async function LaboratoryPage({ params }: Props) {
   <div className="relative mx-auto max-w-7xl px-5">
 
     {/* Back Button */}
-    <Link
+    {/* <Link
       href="/"
       className="
         inline-flex items-center gap-3
@@ -87,7 +87,7 @@ export default async function LaboratoryPage({ params }: Props) {
     >
       <ArrowLeft size={18} />
       Back To Home
-    </Link>
+    </Link> */}
 
     <div className="mt-16 grid items-center gap-16 lg:grid-cols-2">
 
@@ -153,8 +153,8 @@ export default async function LaboratoryPage({ params }: Props) {
               hover:scale-110
             "
           />
-
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+{/* 
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" /> */}
         </div>
 
       </div>
@@ -198,7 +198,7 @@ export default async function LaboratoryPage({ params }: Props) {
 
     </div>
 
-    {/* Cards */}
+   
 {/* Cards */}
 <div className="mt-16 grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
   {lab.features.map((item) => (
@@ -351,8 +351,6 @@ export default async function LaboratoryPage({ params }: Props) {
 
 </section>
 
-      {/* Sections */}
-
     {/* Sections */}
 
 <section className="relative overflow-hidden bg-[#fffaf6] py-20 lg:py-24">
@@ -454,9 +452,7 @@ export default async function LaboratoryPage({ params }: Props) {
               />
 
               {/* Image Overlay */}
-
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
-
               {/* Number */}
 
               <div
@@ -543,7 +539,7 @@ export default async function LaboratoryPage({ params }: Props) {
 
             {/* Title */}
 
-            <h2 className="mt-5 text-3xl font-black leading-tight text-[#333] sm:text-4xl">
+            <h2 className="mt-5 text-3xl leading-tight text-[#333] sm:text-4xl">
               {section.title}
             </h2>
 

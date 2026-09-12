@@ -364,9 +364,9 @@ Whether a student chooses a university degree, diploma, technical education, voc
     image: "/why/digital/PLA1.jpg",
 
     gallery: [
-      "/why/digital/primary.jpg",
-      "/why/digital/digital-2.jpg",
-      "/why/digital/digital-3.jpg",
+      "/why/digital/pl3.png",
+      "/why/digital/PLA1.JPG",
+      "/why/digital/PLA2.JPG",
       "/why/digital/digital-4.jpg",
     ],
 
@@ -377,7 +377,7 @@ Whether a student chooses a university degree, diploma, technical education, voc
         content:
           "Smart boards, projectors and digital content make classroom learning more engaging.",
 
-        image: "/why/digital/class-1.jpg",
+        image: "/why/digital/PLA2.jpg",
 
         points: [
           "Smart Boards",
@@ -393,7 +393,7 @@ Whether a student chooses a university degree, diploma, technical education, voc
         content:
           "Modern digital resources help students understand concepts quickly and effectively.",
 
-        image: "/why/digital/class-2.jpg",
+        image: "/why/digital/pl3.png",
 
         points: [
           "Visual Learning",
@@ -478,9 +478,9 @@ Whether a student chooses a university degree, diploma, technical education, voc
   image: "/why/clinic4.jpg",
 
   gallery: [
-    "/why/medical/medical-1.jpg",
-    "/why/medical/medical-2.jpg",
-    "/why/medical/medical-3.jpg",
+    "/why/clinic4.jpg",
+    "/why/cl2.png",
+    "/why/cl1.png",
     "/why/medical/medical-4.jpg",
   ],
 
@@ -491,7 +491,7 @@ Whether a student chooses a university degree, diploma, technical education, voc
       content:
         "Regular health checkups are provided free of cost for students, school staff, and people from nearby villages. The facility focuses on basic healthcare, early diagnosis, and timely medical guidance.",
 
-      image: "/why/medical/checkup.jpg",
+      image: "/why/cl2.png",
 
       points: [
         "Free Medical Checkups",
@@ -507,7 +507,7 @@ Whether a student chooses a university degree, diploma, technical education, voc
       content:
         "Essential medicines are distributed free of cost to those in need. The clinic supports the local community by making basic healthcare and medicines accessible to families who may otherwise struggle to afford treatment.",
 
-      image: "/why/medical/medicine.jpg",
+      image: "/why/cl1.png",
 
       points: [
         "Free Essential Medicines",

@@ -18,10 +18,10 @@ export const labs = [
 
     icon: Atom,
 
-    image: "/labs/physics/physics-lab.jpg",
-
+    image: "/labs/physics/phy (2).png",
+    
     gallery: [
-      "/labs/phy.pg ",
+      "/labs/physics/phy (2).png",
       "/labs/physics/physics-1.jpg",
       "/labs/physics/physics-2.jpg",
       "/labs/physics/physics-3.jpg",
@@ -34,7 +34,7 @@ export const labs = [
    features: [
   {
     title: "Modern Physics Equipment",
-    image: "/labs/phy.png",
+    image: "/labs/physics/phy(3).png",
   },
   {
     title: "Electricity Experiments",
@@ -42,7 +42,7 @@ export const labs = [
   },
   {
     title: "Optics Practical",
-     image:"/labs/phy2.png",
+     image:"/labs/physics/phy(4).png",
   },
 
 
@@ -50,14 +50,14 @@ export const labs = [
     title: "Measurement Instruments",
    image:"/labs/phy3.png",
   },
-  {
-    title: "Hands-on Activities",
-    image: "/labs/physics/features/hands-on-activities.jpg",
-  },
-  {
-    title: "Scientific Observation",
-    image: "/labs/physics/features/scientific-observation.jpg",
-  },
+  // {
+  //   title: "Hands-on Activities",
+  //   image: "/labs/physics/features/hands-on-activities.jpg",
+  // },
+  // {
+  //   title: "Scientific Observation",
+  //   image: "/labs/physics/features/scientific-observation.jpg",
+  // },
 ],
 
     highlights: [
@@ -74,7 +74,7 @@ export const labs = [
         content:
           "Students understand scientific principles through practical experiments and demonstrations.",
 
-        image: "/labs/physics/physics-1.jpg",
+        image: "/labs/physics/phy(3).png",
       },
 
       {
@@ -83,7 +83,7 @@ export const labs = [
         content:
           "Modern laboratory instruments help students perform experiments accurately.",
 
-        image: "/labs/physics/physics-2.jpg",
+        image: "/labs/physics/phy(4).png",
       },
     ],
   },
@@ -99,10 +99,10 @@ export const labs = [
 
     icon: FlaskConical,
 
-    image: "/labs/chemistry/chemistry-lab.jpg",
+    image: "/labs/chemistry/chem1.png",
 
     gallery: [
-      "/labs/chemistry/chemistry-lab.jpg",
+        "/labs/chemistry/chem1.png",
       "/labs/chemistry/chemistry-1.jpg",
       "/labs/chemistry/chemistry-2.jpg",
       "/labs/chemistry/chemistry-3.jpg",
@@ -124,32 +124,32 @@ export const labs = [
 features: [
   {
     title: "Chemical Reactions",
-    image: "/labs/chemistry/features/chemical-reactions.jpg",
+    image: "/labs/chemistry/chem1.png",
   },
   {
     title: "Laboratory Safety",
-    image: "/labs/chemistry/features/laboratory-safety.jpg",
+  image: "/labs/chemistry/chem2.png",
   },
 
    {
    title:"Glassware Practice",
-    image: "/labs/chemistry/features/laboratory-safety.jpg",
+    image: "/labs/chemistry/chem3.png",
   },
 
     {
    title:"Scientific Observation",
-    image: "/labs/chemistry/features/laboratory-safety.jpg",
+    image: "/labs/chemistry/chem1.png",
   },
 
-    {
-   title:"Acid & Base Experiments",
-    image: "/labs/chemistry/features/laboratory-safety.jpg",
-  },
+  //   {
+  //  title:"Acid & Base Experiments",
+  //   image: "/labs/chemistry/features/laboratory-safety.jpg",
+  // },
 
-   {
-   title:"Modern Chemicals",
-    image: "/labs/chemistry/features/laboratory-safety.jpg",
-  },
+  //  {
+  //  title:"Modern Chemicals",
+  //   image: "/labs/chemistry/features/laboratory-safety.jpg",
+  // },
 ],
 
 
@@ -165,18 +165,18 @@ features: [
         title: "Chemical Experiments",
 
         content:
-          "Students perform experiments to understand reactions and chemical properties.",
+          "Students perform a variety of chemical experiments to understand concepts through practical learning. Under the guidance of experienced teachers, students learn about reactions, solutions, acids, bases, salts, and other important chemistry topics using proper laboratory equipment and safe procedures.",
 
-        image: "/labs/chemistry/chemistry-1.jpg",
+         image: "/labs/chemistry/chem2.png",
       },
 
       {
         title: "Laboratory Safety",
 
         content:
-          "Students learn safe handling of chemicals and laboratory equipment.",
+          "At Smt. Champi Devi Inter College, student safety is our top priority. Our laboratories are maintained with proper safety measures, organized equipment, and clear instructions for every practical session. Students perform experiments under the guidance of teachers and are encouraged to follow laboratory rules, handle equipment carefully, and develop safe scientific practices.",
 
-        image: "/labs/chemistry/chemistry-2.jpg",
+        image: "/labs/chemistry/chem3.png",
       },
     ],
   },

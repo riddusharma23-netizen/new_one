@@ -8,27 +8,32 @@ import {
 } from "lucide-react";
 
 export const facilities = [
+
   // {
   //   id: 1,
   //   slug: "Medical-clinic",
   //   title: "Medical Clinic",
   //   icon: HeartPulse,
-
+  //
   //   description:
   //     "Medical support and healthcare facilities for students.",
-
+  //
   //   heroDescription:
   //     "Our school provides medical support and basic healthcare facilities to ensure the health, safety and well-being of every student.",
-
+  //
+  //   // TOP HERO IMAGE
   //   image: "/why/clinic4.jpg",
-
+  //
+  //   // SIDE / MIDDLE IMAGE
+  //   contentImage: "/why/clinic4.jpg",
+  //
   //   label: "Student Care",
-
-  //   heading: "A Safe & Healthy Learning Environment",           
-
+  //
+  //   heading: "A Safe & Healthy Learning Environment",
+  //
   //   content:
   //     "Our medical facilities help maintain a safe and healthy environment for all students. Students can receive basic medical assistance and support whenever required.",
-
+  //
   //   points: [
   //     "Basic first aid and medical assistance",
   //     "Health and wellness support",
@@ -49,7 +54,11 @@ export const facilities = [
     heroDescription:
       "Educational and spiritual tours give students opportunities to explore important places, understand culture and learn through real-world experiences.",
 
+    // TOP HERO IMAGE
     image: "/why/scho.png",
+
+    // SIDE / MIDDLE IMAGE
+    contentImage: "/why/scho1.png",
 
     label: "Explore & Learn",
 
@@ -72,13 +81,17 @@ export const facilities = [
     title: "Certified Teachers",
     icon: BadgeCheck,
 
-  description: `Our institution features a dedicated team of 12 certified, experienced, and
+    description: `Our institution features a dedicated team of 12 certified, experienced, and
 highly qualified lecturers providing personalized academic attention to every student.`,
 
     heroDescription:
       "Our certified teachers are dedicated to providing quality education, guidance and support to every student.",
 
-    image: "/why/clinic4.jpg",
+    // TOP HERO IMAGE
+    image: "/why/digi1.png",
+
+    // SIDE / MIDDLE IMAGE
+    contentImage: "/why/ext-class.png",
 
     label: "Our Educators",
 
@@ -102,12 +115,16 @@ highly qualified lecturers providing personalized academic attention to every st
     icon: Languages,
 
     description:
-      "English speaking and personality development sessions to build global confidence among rural students",
+      "English speaking and personality development sessions to build global confidence among rural students.",
 
     heroDescription:
       "English speaking activities help students improve communication skills, confidence, vocabulary and fluency.",
 
-    image: "/why/clinic4.jpg",
+    // TOP HERO IMAGE
+    image: "/why/spo.png",
+
+    // SIDE / MIDDLE IMAGE
+    contentImage: "/why/spo1.png",
 
     label: "Communication Skills",
 
@@ -124,69 +141,69 @@ highly qualified lecturers providing personalized academic attention to every st
     ],
   },
 
- {
-  id: 5,
-  slug: "extra-classes",
-  title: "Extra Classes",
-  icon: BookOpenCheck,
+  {
+    id: 5,
+    slug: "extra-classes",
+    title: "Extra Classes",
+    icon: BookOpenCheck,
 
-  description:
-    "Regular extra classes to support weak students in overcoming academic difficulties and ensure top performance in board exams.",
+    description:
+      "Regular extra classes to support weak students in overcoming academic difficulties and ensure top performance in board exams.",
 
-  heroDescription:
-    "Extra classes help students strengthen their concepts, improve performance and achieve their academic goals.",
+    heroDescription:
+      "Extra classes help students strengthen their concepts, improve performance and achieve their academic goals.",
 
-  // TOP HERO IMAGE
-  image: "/why/ext-class.png",
+    // TOP HERO IMAGE
+    image: "/why/ext-class.png",
 
-  // SIDE / MIDDLE IMAGE
-  contentImage: "/why/sc4.jpg",
+    // SIDE / MIDDLE IMAGE
+    contentImage: "/why/sc4.jpg",
 
-  label: "Academic Support",
+    label: "Academic Support",
 
-  heading: "Helping Students Learn Better",
+    heading: "Helping Students Learn Better",
 
-  content:
-    "Extra classes provide additional opportunities for students to revise lessons, ask questions and develop stronger understanding of important concepts.",
+    content:
+      "Extra classes provide additional opportunities for students to revise lessons, ask questions and develop stronger understanding of important concepts.",
 
-  points: [
-    "Extra support for difficult subjects",
-    "Concept clarification",
-    "Additional practice sessions",
-    "Academic performance improvement",
-  ],
-},
+    points: [
+      "Extra support for difficult subjects",
+      "Concept clarification",
+      "Additional practice sessions",
+      "Academic performance improvement",
+    ],
+  },
 
-{
-  id: 6,
-  slug: "Scholarship",
-  title: "Scholarship",
-  icon: GraduationCap,
+  {
+    id: 6,
+    slug: "Scholarship",
+    title: "Scholarship",
+    icon: GraduationCap,
 
-  description:
-    "Scholarship opportunities for talented and hardworking students.",
+    description:
+      "Scholarship opportunities for talented and hardworking students.",
 
-  heroDescription:
-    "Scholarship opportunities encourage talented and hardworking students to continue their education and achieve their dreams.",
+    heroDescription:
+      "Scholarship opportunities encourage talented and hardworking students to continue their education and achieve their dreams.",
 
-  // TOP HERO IMAGE
-  image: "/why/scho.png",
+    // TOP HERO IMAGE
+    image: "/why/scho.png",
 
-  // MIDDLE SECTION IMAGE
-  contentImage: "/why/scho2.png",
+    // SIDE / MIDDLE IMAGE
+    contentImage: "/why/scho2.png",
 
-  label: "Scholarship Program",
+    label: "Scholarship Program",
 
-  heading: "Rewarding Talent & Hard Work",
+    heading: "Rewarding Talent & Hard Work",
 
-  content:
-    "Our scholarship initiative is designed to motivate students who demonstrate strong academic performance, dedication and commitment to their education.",
+    content:
+      "Our scholarship initiative is designed to motivate students who demonstrate strong academic performance, dedication and commitment to their education.",
 
-  points: [
-    "Encourages academic excellence",
-    "Supports deserving students",
-    "Motivates students to achieve higher goals",
-    "Helps support quality education",
-  ],
-},
+    points: [
+      "Encourages academic excellence",
+      "Supports deserving students",
+      "Motivates students to achieve higher goals",
+      "Helps support quality education",
+    ],
+  },
 ];

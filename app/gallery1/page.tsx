@@ -72,12 +72,12 @@ const culturalEvents = [
 
 const sportsEvents = [
   {
-    image: "/images/gallery/PG9.jpg",
+    image: "/images/gallery/PLA1.jpg",
     title: "Annual Sports Meet",
     category: "Sports",
   },
   {
-    image: "/images/gallery/PG9.jpg",
+    image: "/images/gallery/PLA1.jpg",
     title: "Cricket Tournament",
     category: "Sports",
   },

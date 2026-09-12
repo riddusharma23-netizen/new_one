@@ -786,3 +786,22 @@ body {
   background-size: 200% auto;
   animation: textGradient 4s linear infinite;
 }
+
+
+
+
+/* ******************************************** */
+
+@keyframes gallerySlider {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-gallerySlider {
+  animation: gallerySlider 30s linear infinite;
+}

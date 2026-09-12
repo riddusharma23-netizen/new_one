@@ -751,83 +751,99 @@ export default async function WhyChooseUsDetailPage({
     <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[#F8F000]/10 blur-3xl" />
     <div className="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full border-[35px] border-[#F8F000]/10 rounded-full" />
 
-    <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+  <div className="relative mx-auto max-w-7xl overflow-hidden px-5 sm:px-6 lg:px-8">
 
+  {/* Slider */}
+  <div className="mt-10 lg:mt-12">
 
-      {/* Gallery Grid */}
-      <div
-        className="
-          mt-10
-          grid
-          grid-cols-1
-          gap-5
-          sm:grid-cols-2
-          lg:mt-12
-          lg:grid-cols-4
-        "
-      >
+    <div
+      className="
+        group
+        flex
+        w-max
+        gap-5
+        animate-gallerySlider
+        hover:[animation-play-state:paused]
+      "
+    >
+      {[...item.gallery, ...item.gallery].map((image, index) => (
 
-        {item.gallery.map((image, index) => (
+        <div
+          key={`${image}-${index}`}
+          className="
+            relative
+            h-[220px]
+            w-[280px]
+            shrink-0
+            overflow-hidden
+            rounded-[24px]
+            border
+            border-white/10
+            bg-white/5
+            shadow-[0_15px_40px_rgba(0,0,0,0.18)]
+            transition-all
+            duration-500
 
+            hover:-translate-y-2
+            hover:border-[#F8F000]/60
+            hover:shadow-[0_22px_50px_rgba(0,0,0,0.28)]
+
+            sm:h-[250px]
+            sm:w-[340px]
+
+            lg:h-[320px]
+            lg:w-[420px]
+          "
+        >
+
+          <Image
+            src={image}
+            alt={`${item.title} ${(index % item.gallery.length) + 1}`}
+            fill
+            className="
+              object-cover
+              transition-transform
+              duration-700
+              hover:scale-110
+            "
+          />
+
+          {/* Overlay */}
           <div
-            key={`${image}-${index}`}
-            className={`
-              group
-              relative
-              overflow-hidden
-              rounded-[24px]
-              border
-              border-white/10
-              bg-white/5
-              shadow-[0_15px_40px_rgba(0,0,0,0.18)]
+            className="
+              absolute
+              inset-0
+              bg-gradient-to-t
+              from-black/40
+              via-black/10
+              to-transparent
+            "
+          />
+
+          {/* Bottom Accent */}
+          <div
+            className="
+              absolute
+              bottom-0
+              left-0
+              h-1
+              w-0
+              bg-[#F8F000]
               transition-all
               duration-500
-              hover:-translate-y-2
-              hover:border-[#F8F000]/60
-              hover:shadow-[0_22px_50px_rgba(0,0,0,0.28)]
+              group-hover:w-full
+            "
+          />
 
-              ${index === 0 ? "sm:col-span-2 lg:col-span-2 h-[240px] sm:h-[280px] lg:h-[320px]" : "h-[220px] sm:h-[240px] lg:h-[320px]"}
-            `}
-          >
+        </div>
 
-            <Image
-              src={image}
-              alt={`${item.title} ${index + 1}`}
-              fill
-              className="
-                object-cover
-                transition-transform
-                duration-700
-                group-hover:scale-110
-              "
-            />
-
-            {/* Overlay */}
-            <div
-              className="
-                absolute
-                inset-0
-                bg-gradient-to-t
-                from-black/40
-                via-black/10
-                to-transparent
-                opacity-80
-                transition
-                duration-500
-                group-hover:opacity-100
-              "
-            />
-
-            {/* Bottom Accent */}
-            <div className="absolute bottom-0 left-0 h-1 w-0 bg-[#F8F000] transition-all duration-500 group-hover:w-full" />
-
-          </div>
-
-        ))}
-
-      </div>
+      ))}
 
     </div>
+
+  </div>
+
+</div>
 
   </section>
 
