@@ -52,9 +52,21 @@ const teachers = Array.from({ length: 12 }, (_, i) => ({
     "Teacher - Science",
   ][i],
 
-  image: `/teachers/t${(i % 5) + 1}.jpg`,
+   image: [
+    "/teachers/bhagwati-prasad.png",
+    "/teachers/devki-nandan-sharma.jpeg",
+    "/teachers/dharmvir-sharma.jpeg",
+    "/teachers/vineet-kumar.jpeg",
+    "/teachers/megh-shyam.jpeg",
+    "/teachers/krishna-murari.jpeg",
+    "/teachers/rakesh-kumar.jpeg",
+    "/teachers/vikram-babu.jpeg",
+    "/teachers/vineet-sharma.jpeg",
+    "/teachers/sandeep-kumar.jpeg",
+    "/teachers/shivam-varshney.jpeg",
+    "/teachers/hemalata-garg.jpeg",
+  ][i],
 
-  
 
   experience: `${(i % 5) + 2}+ Years`,
 
@@ -227,7 +239,7 @@ export default function Teachers() {
       "
     >
       <Image
-        src="/school.jpg"
+        src="/teachers/SCHOOL.jpg"
         alt="background"
         fill
         priority
@@ -299,7 +311,7 @@ export default function Teachers() {
             backdrop-blur
             "
           >
-            ABOUT OUR Teachers
+            ABOUT OUR TEACHERS
           </span>
   
           <h1
@@ -307,7 +319,7 @@ export default function Teachers() {
             mt-8
   
             text-3xl
-            lg:text-7xl
+            lg:text-6xl
   
             font-black'
   
@@ -375,7 +387,7 @@ export default function Teachers() {
             >
   
               <Image
-                src="/school.jpg"
+                src="/teachers/SCHOOL.jpg"
                 alt="about"
   
                 fill
@@ -604,7 +616,7 @@ border-[#F8F400]
         mt-8
 
        text-4xl
-            lg:text-5xl
+            lg:text-4xl
             font-black'
             leading-tight
         "
@@ -1521,13 +1533,6 @@ Medical Staff
 </div>
   ))}
 </div>
-
-
-
-
-
-
-
 </div>
 
 </section>
@@ -1561,7 +1566,6 @@ function Stat({
       duration-300
       "
     >
-
       <div
         className="
         flex

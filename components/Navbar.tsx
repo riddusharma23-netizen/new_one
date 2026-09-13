@@ -32,7 +32,7 @@ const menuItems = [
   },
   {
     title: "Gallery",
-    href: "/gallery",
+    href: "/gallery1",
     icon: Images,
   },
   {

@@ -63,7 +63,7 @@ const culturalEvents = [
     date: "16 December 2025",
   },
   {
-    image: "/images/gallery/PG9.jpg",
+     image: "/images/gallery/PLA1.jpg",
     title: "Drama & Skit Competition",
     category: "Cultural Event",
     date: "17 December 2025",

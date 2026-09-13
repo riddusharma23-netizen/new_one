@@ -278,7 +278,7 @@ function Title({ title }: { title: string }) {
   return (
     <div>
 
-      <h3 className="text-2xl font-black sm:text-3xl">
+      <h3 className="text-[20px] font-black sm:text-1xl">
         {title}
       </h3>
 

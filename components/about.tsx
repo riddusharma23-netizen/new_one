@@ -363,11 +363,11 @@ export default function About() {
                   lg:text-5xl
                 "
               >
-                Welcome to Smt.
+                Welcome to SMT.
 
                 <span className="text-[#B60F17]">
                   {" "}
-                  CDIC, Jamon (Aligarh)
+                  CDIC Jamon (Aligarh)
                 </span>
               </h2>
 
