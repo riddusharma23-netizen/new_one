@@ -21,7 +21,7 @@ export default function AdmissionGuidelines() {
     sections,
     button,
     note,
-    importantDates,
+    // importantDates,
   } = admissionGuidelinesData;
 
   return (
