@@ -34,6 +34,7 @@ const teachers = Array.from({ length: 12 }, (_, i) => ({
     "Sandeep Kumar",
     "Shivam Varshney",
     "Hemalata Garg",
+      "Anil Kumar Kaushik",
   ][i],
 
   role: [
@@ -50,6 +51,7 @@ const teachers = Array.from({ length: 12 }, (_, i) => ({
     "Teacher - Physics",
     "Teacher - Biology",
     "Teacher - Science",
+    "Teacher - Science",
   ][i],
 
    image: [
@@ -65,6 +67,7 @@ const teachers = Array.from({ length: 12 }, (_, i) => ({
     "/teachers/sandeep-kumar.jpeg",
     "/teachers/shivam-varshney.jpeg",
     "/teachers/hemalata-garg.jpeg",
+    "/teachers/anilkumar-Kaushik.jpeg",
   ][i],
 
 
@@ -99,6 +102,7 @@ const teachers = Array.from({ length: 12 }, (_, i) => ({
     " sandeepksharma4243@gmail.com ",
     "mth.shivam20@gmail.com ",
     "neerajkaushik734@gmail.com",
+        "pt.akkaushik1997@gmail.com",
   ][i],
 
   degree: [
@@ -112,7 +116,8 @@ const teachers = Array.from({ length: 12 }, (_, i) => ({
     "M.A. , B.Ed.",
     "M.Sc. , B.Ed.",
     " M.Sc. , B.Ed.",
-    "B.Sc.",
+    "Home Science.",
+    "M.sc Physics",
 
  
     "MCA",

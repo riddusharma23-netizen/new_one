@@ -27,9 +27,7 @@ import "swiper/css/pagination";
 import "swiper/css/navigation";
 import "swiper/css/effect-coverflow";
 
-// -----------------------------------------------------
-// DATA — More images added to each section
-// -----------------------------------------------------
+
 
 const culturalEvents = [
   {
@@ -39,7 +37,7 @@ const culturalEvents = [
     date: "15 December 2025",
   },
   {
-    image: "/images/gallery/school.jpg",
+    image: "/images/gallery/PG8.jpg",
     title: "Dance Performance",
     category: "Cultural Event",
     date: "15 December 2025",
@@ -213,12 +211,9 @@ export default function GalleryPage() {
       "
     />
   </div>
-
-
-
         <div className="relative mx-auto flex min-h-[560px] max-w-7xl items-center px-6 py-20 lg:px-8">
           <div className="max-w-3xl">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-md">
+            <div className="   inline-flex      px-6   py-2      rounded-full      bg-[#F8F400]   backdrop-blur   text-[#B70F17]   shadow-lg   bold   text-sm   font-semibold   tracking-wider mb-3">
               <Camera className="h-4 w-4 text-[#B60F17]" />
               School Gallery
             </div>
@@ -235,18 +230,18 @@ export default function GalleryPage() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link
+              {/* <Link
                 href="#cultural-events"
                 className="group inline-flex items-center gap-2 rounded-full bg-[#F8F400] px-6 py-3 font-semibold text-[#B60F17] transition hover:bg-[#e6db00]"
               >
                 Explore Gallery
                 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-              </Link>
+              </Link> */}
 
-              <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm text-white backdrop-blur">
+              {/* <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm text-white backdrop-blur">
                 <Sparkles className="h-4 w-4 text-[#F8F400]" />
                 2025–26 Memories
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
