@@ -72,7 +72,7 @@ export const labs = [
         title: "Practical Learning",
 
         content:
-          "Students understand scientific principles through practical experiments and demonstrations.",
+          "Students explore key Physics concepts through hands-on experiments, measurements, observations, and demonstrations related to motion, electricity, light, force, and energy.",
 
         image: "/labs/physics/phy(3).png",
       },
@@ -81,7 +81,7 @@ export const labs = [
         title: "Advanced Equipment",
 
         content:
-          "Modern laboratory instruments help students perform experiments accurately.",
+          "The Physics laboratory is equipped with essential instruments such as ammeters, voltmeters, galvanometers, lenses, prisms, meter bridges, pendulums, and measuring devices that help students perform experiments accurately and understand concepts through direct observation.",
 
         image: "/labs/physics/phy(4).png",
       },
@@ -133,12 +133,12 @@ features: [
 
    {
    title:"Glassware Practice",
-    image: "/labs/chemistry/chem3.png",
+    image: "/labs/chemistry/phy(5).png",
   },
 
     {
    title:"Scientific Observation",
-    image: "/labs/chemistry/chem1.png",
+    image: "/labs/chemistry/chem(2).png",
   },
 
   //   {
@@ -167,7 +167,7 @@ features: [
         content:
           "Students perform a variety of chemical experiments to understand concepts through practical learning. Under the guidance of experienced teachers, students learn about reactions, solutions, acids, bases, salts, and other important chemistry topics using proper laboratory equipment and safe procedures.",
 
-         image: "/labs/chemistry/chem2.png",
+         image: "/labs/chemistry/chem(1).png",
       },
 
       {
@@ -176,7 +176,7 @@ features: [
         content:
           "At Smt. Champi Devi Inter College, student safety is our top priority. Our laboratories are maintained with proper safety measures, organized equipment, and clear instructions for every practical session. Students perform experiments under the guidance of teachers and are encouraged to follow laboratory rules, handle equipment carefully, and develop safe scientific practices.",
 
-        image: "/labs/chemistry/chem3.png",
+        image: "/labs/chemistry/phy(6).png",
       },
     ],
   },
@@ -192,10 +192,10 @@ features: [
 
     icon: Microscope,
 
-    image: "/labs/biology/biology-lab.jpg",
+    image: "/labs/biology/bio1.png",
 
     gallery: [
-      "/labs/biology/biology-lab.jpg",
+      "/labs/biology/bio2.png",
       "/labs/biology/biology-1.jpg",
       "/labs/biology/biology-2.jpg",
       "/labs/biology/biology-3.jpg",
@@ -217,28 +217,22 @@ features: [
 features: [
   {
     title: "Microscope Learning",
-    image: "/labs/biology/features/microscope-learning.jpg",
+    image: "/labs/biology/bio2.png",
   },
   {
     title: "Plant Study",
-    image: "/labs/biology/features/plant-study.jpg",
+    image: "/labs/biology/bio3.png",
   },
   {
     title: "Animal Study",
-    image: "/labs/biology/features/animal-study.jpg",
+    image: "/labs/biology/bio4.png",
   },
   {
     title: "Biological Models",
-    image: "/labs/biology/features/biological-models.jpg",
+    image: "/labs/biology/bio5.png",
   },
-  {
-    title: "Practical Activities",
-    image: "/labs/biology/features/practical-activities.jpg",
-  },
-  {
-    title: "Observation Skills",
-    image: "/labs/biology/features/observation-skills.jpg",
-  },
+ 
+  
 ],
 
     highlights: [
@@ -253,18 +247,17 @@ features: [
         title: "Microscopic Study",
 
         content:
-          "Students observe cells, tissues and microorganisms through microscopes.",
+          "Students use microscopes to examine prepared slides of plant and animal cells, tissues, and microorganisms, helping them understand biological structures through practical observation.",
 
-        image: "/labs/biology/biology-1.jpg",
+        image: "/labs/biology/bio2.png",
       },
 
       {
         title: "Practical Activities",
 
-        content:
-          "Interactive activities make Biology interesting and easy to understand.",
-
-        image: "/labs/biology/biology-2.jpg",
+content:
+  "Students perform hands-on Biology activities such as slide preparation, specimen observation, simple experiments, and model-based learning to better understand biological concepts.",
+        image: "/labs/biology/bio7.png",
       },
     ],
   },
@@ -280,18 +273,18 @@ features: [
 
     icon: Home,
 
-    image: "/labs/home-science/home-science-lab.jpg",
+    image: "/labs/homescience/homescience.png",
 
     gallery: [
-      "/labs/home-science/home-science-lab.jpg",
-      "/labs/home-science/home-1.jpg",
+      "/labs/homescience/homescience1.png",
+      "/labs/homescience/f1.png",
       "/labs/home-science/home-2.jpg",
       "/labs/home-science/home-3.jpg",
-      "/labs/home-science/home-4.jpg",
+      // "/labs/home-science/home-4.jpg",
     ],
 
     description:
-      "Equipped for training students practically in nutritional science, textile arts, and home management.",
+      "Our Home Science Lab provides students with practical learning opportunities in nutrition, food preparation, textile studies, health, and home management. The lab is designed to help students develop essential life skills through hands-on activities, experiments, and creative projects in a safe and well-equipped learning environment.",
 
     // features: [
     //   "Cooking Practice",
@@ -306,28 +299,21 @@ features: [
     features: [
   {
     title: "Cooking Practice",
-    image: "/labs/home-science/features/cooking-practice.jpg",
+    image: "/labs/homescience/homescience1.png",
   },
   {
     title: "Nutrition Education",
-    image: "/labs/home-science/features/nutrition-education.jpg",
+    image: "/labs/homescience/f1.png",
   },
   {
     title: "Textile Skills",
-    image: "/labs/home-science/features/textile-skills.jpg",
+    image: "/labs/homescience/tex.png",
   },
   {
     title: "Health & Hygiene",
-    image: "/labs/home-science/features/health-hygiene.jpg",
+       image: "/labs/homescience/f1.png",
   },
-  {
-    title: "Life Skills",
-    image: "/labs/home-science/features/life-skills.jpg",
-  },
-  {
-    title: "Creative Activities",
-    image: "/labs/home-science/features/creative-activities.jpg",
-  },
+ 
 ],
 
     highlights: [
@@ -342,19 +328,106 @@ features: [
         title: "Life Skills",
 
         content:
-          "Students develop practical life skills useful in daily living.",
+          "Students develop essential practical skills that help them become more confident, responsible, and independent in everyday life. Through hands-on activities, they learn basic home management, personal care, healthy habits, organization, decision-making, and problem-solving skills.",
 
-        image: "/labs/home-science/home-1.jpg",
+        image: "/labs/homescience/tex.png",
       },
 
       {
         title: "Healthy Living",
 
         content:
-          "Students understand nutrition, hygiene and balanced diets through activities.",
+          "Students learn the importance of proper nutrition, personal hygiene, and a balanced diet through practical activities and demonstrations. These lessons help them understand healthy food choices, cleanliness, and daily habits that support physical well-being and a healthy lifestyle.",
 
-        image: "/labs/home-science/home-2.jpg",
+    image: "/labs/homescience/f1.png",
       },
     ],
   },
+
+// computer lab ****************************
+
+
+
+  {
+    id: 5,
+
+    slug: "Computer-Lab",
+
+    title: "Computer Lab",
+
+    shortTitle: "Our Computer Laboratory provides students with a modern and interactive environment to develop essential digital skills. Equipped with computers and learning resources, the lab helps students gain practical knowledge of computer applications, programming basics, internet usage, and digital technology through hands-on learning.",
+
+    icon: Home,
+
+    image: "/labs/computerlab/cc1.png",
+
+    gallery: [
+      "/labs/homescience/homescience1.png",
+      "/labs/homescience/f1.png",
+      "/labs/home-science/home-2.jpg",
+      "/labs/home-science/home-3.jpg",
+      // "/labs/home-science/home-4.jpg",
+    ],
+
+    description:
+      "Our Home Science Lab provides students with practical learning opportunities in nutrition, food preparation, textile studies, health, and home management. The lab is designed to help students develop essential life skills through hands-on activities, experiments, and creative projects in a safe and well-equipped learning environment.",
+
+    // features: [
+    //   "Cooking Practice",
+    //   "Nutrition Education",
+    //   "Textile Skills",
+    //   "Health & Hygiene",
+    //   "Life Skills",
+    //   "Creative Activities",
+    // ],
+
+
+    features: [
+  {
+    title: "Cooking Practice",
+    image: "/labs/homescience/homescience1.png",
+  },
+  {
+    title: "Nutrition Education",
+    image: "/labs/homescience/f1.png",
+  },
+  {
+    title: "Textile Skills",
+    image: "/labs/homescience/tex.png",
+  },
+  {
+    title: "Health & Hygiene",
+       image: "/labs/homescience/f1.png",
+  },
+ 
+],
+
+    highlights: [
+      "Everyday Practical Skills",
+      "Healthy Lifestyle",
+      "Creative Learning",
+      "Confidence Building",
+    ],
+
+    sections: [
+      {
+        title: "Computer Skills",
+
+content:
+  "Students develop essential computer skills through practical learning and hands-on activities. They learn computer fundamentals, typing, MS Office, internet usage, digital communication, file management, and safe use of technology, helping them become confident and capable in today’s digital world.",
+        image: "/labs/homescience/tex.png",
+      },
+
+      {
+       title: "Digital Learning",
+
+content:
+  "Students gain practical experience with computers and digital tools in a real classroom environment. They learn how to work with common applications, manage files, use the internet responsibly, and complete basic academic tasks on computers, building useful skills for higher studies and everyday life.",
+
+    image: "/labs/homescience/f1.png",
+      },
+    ],
+  },
+
+
 ];

@@ -122,42 +122,38 @@ export default async function LaboratoryPage({ params }: Props) {
 
       </div>
 
-      {/* RIGHT IMAGE */}
-      <div className="relative">
-
-        {/* Border 1 */}
-        <div className="absolute -left-5 -top-5 h-full w-full rounded-[40px] border-[4px] border-[#F8F000]" />
-
-        {/* Border 2 */}
-        <div className="absolute -right-5 -bottom-5 h-full w-full rounded-[40px] border-[4px] border-[#B60F17]" />
-
-        {/* Main Image */}
-        <div
-          className="
-            relative
-            h-[480px]
-            overflow-hidden
-            rounded-[40px]
-            shadow-[0_35px_80px_rgba(0,0,0,.45)]
-          "
-        >
-          <Image
-            src={lab.image}
-            alt={lab.title}
-            fill
-            priority
-            className="
-              object-cover
-              transition
-              duration-700
-              hover:scale-110
-            "
-          />
-{/* 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" /> */}
-        </div>
-
-      </div>
+     
+     {/* RIGHT IMAGE */}
+<div className="relative">
+  <div
+    className="
+      relative
+      h-[480px]
+      overflow-hidden
+      rounded-[28px]
+      border
+      border-white/20
+      bg-white/10
+      p-2
+      shadow-[0_25px_60px_rgba(0,0,0,0.30)]
+    "
+  >
+    <div className="relative h-full w-full overflow-hidden rounded-[22px]">
+      <Image
+        src={lab.image}
+        alt={lab.title}
+        fill
+        priority
+        className="
+          object-cover
+          transition-transform
+          duration-700
+          hover:scale-105
+        "
+      />
+    </div>
+  </div>
+</div>
 
     </div>
 
@@ -375,145 +371,38 @@ export default async function LaboratoryPage({ params }: Props) {
         >
 
           {/* IMAGE */}
-
-          <div
-            className={`group relative ${
-              index % 2 !== 0
-                ? "lg:order-2"
-                : "lg:order-1"
-            }`}
-          >
-
-            {/* Back Border */}
-
-            <div
-              className="
-                absolute
-                -bottom-4
-                -right-4
-                h-full
-                w-full
-                rounded-[34px]
-                border-[3px]
-                border-[#B60F17]/30
-                transition-all
-                duration-500
-                group-hover:translate-x-2
-                group-hover:translate-y-2
-              "
-            />
-
-            {/* Decorative Corner */}
-
-            <div
-              className="
-                absolute
-                -left-4
-                -top-4
-                h-24
-                w-24
-                rounded-tl-[30px]
-                border-l-[6px]
-                border-t-[6px]
-                border-[#B60F17]
-                transition-all
-                duration-500
-                group-hover:-left-6
-                group-hover:-top-6
-              "
-            />
-
-            {/* Image Wrapper */}
-
-            <div
-              className="
-                relative
-                h-[300px]
-                overflow-hidden
-                rounded-[30px]
-                bg-gray-100
-                shadow-[0_20px_50px_rgba(7,47,96,0.14)]
-                sm:h-[380px]
-                lg:h-[430px]
-              "
-            >
-
-              <Image
-                src={section.image}
-                alt={section.title}
-                fill
-                className="
-                  object-cover
-                  transition-transform
-                  duration-700
-                  ease-out
-                  group-hover:scale-110
-                "
-              />
-
-              {/* Image Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
-              {/* Number */}
-
-              <div
-                className="
-                  absolute
-                  left-5
-                  top-5
-                  flex
-                  h-14
-                  w-14
-                  items-center
-                  justify-center
-                  rounded-2xl
-                  border
-                  border-white/60
-                  bg-white/90
-                  text-lg
-                  font-black
-                  text-[#B60F17]
-                  shadow-xl
-                  backdrop-blur-md
-                  transition-transform
-                  duration-500
-                  group-hover:scale-110
-                "
-              >
-                {String(index + 1).padStart(2, "0")}
-              </div>
-
-              {/* Bottom Image Label */}
-
-              <div
-                className="
-                  absolute
-                  bottom-5
-                  left-5
-                  right-5
-                  rounded-2xl
-                  border
-                  border-white/20
-                  bg-black/30
-                  px-5
-                  py-4
-                  text-[#B60F17]
-                  backdrop-blur-md
-                "
-              >
-
-                <p className="text-xs font-semibold uppercase tracking-[2px] text-[#F8F000]">
-                  Laboratory
-                </p>
-
-                <p className="mt-1 text-lg font-bold">
-                  {section.title}
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
+ 
+<div
+  className={`group relative ${
+    index % 2 !== 0 ? "lg:order-2" : "lg:order-1"
+  }`}
+>
+  <div
+    className="
+      relative
+      h-[300px]
+      overflow-hidden
+      rounded-[24px]
+      bg-gray-100
+      shadow-[0_15px_40px_rgba(0,0,0,0.12)]
+      sm:h-[380px]
+      lg:h-[430px]
+    "
+  >
+    <Image
+      src={section.image}
+      alt={section.title}
+      fill
+      className="
+        object-cover
+        transition-transform
+        duration-700
+        ease-out
+        group-hover:scale-105
+      "
+    />
+  </div>
+</div>
 
           {/* CONTENT */}
 

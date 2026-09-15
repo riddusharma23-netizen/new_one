@@ -18,65 +18,60 @@ import {
     
 } from "lucide-react";
 
-const teachers = Array.from({ length: 12 }, (_, i) => ({
+const teachers = Array.from({ length: 13 }, (_, i) => ({
   id: i + 1,
 
   name: [
     "Bhagwati Prasad",
     "Devki Nandan Sharma",
-    "Dharmvir Sharma",
+    "Krishna Murari Upadhyay",
     "Vineet Kumar",
     "Megh Shyam",
-    "Krishna Murari",
     "Rakesh Kumar",
-    "Vikram Babu",
-    "Vineet Sharma",
     "Sandeep Kumar",
+    "Vineet Sharma",
+    "Vikram Babu",
     "Shivam Varshney",
+    "Anil Kumar Kaushik",
+    "Dharmvir Sharma",
     "Hemalata Garg",
-      "Anil Kumar Kaushik",
   ][i],
 
   role: [
-    " Principal",
+    "Principal",
     "Vice-Principal",
-    "Motion Graphics Mentor",
-    "Science",
-    " Chemistry",
-    "English",
-    "Teacher - Math",
-    "Teacher - History",
-    "Teacher - Hindi",
-    "Teacher - English",
-    "Teacher - Physics",
-    "Teacher - Biology",
-    "Teacher - Science",
-    "Teacher - Science",
+    "Lecturer - Mathematics",
+    "Lecturer - Chemistry",
+    "Lecturer - English",
+    "Lecturer - History",
+    "Lecturer - Physics",
+    "Lecturer - English",
+    "Lecturer - Hindi",
+    "Lecturer - Biology",
+    "Lecturer - Physics",
+    "Assistant Teacher - Science",
+    "Assistant Teacher - Science",
   ][i],
 
-   image: [
+  image: [
     "/teachers/bhagwati-prasad.png",
     "/teachers/devki-nandan-sharma.jpeg",
-    "/teachers/dharmvir-sharma.jpeg",
+    "/teachers/krishna-murari.jpeg",
     "/teachers/vineet-kumar.jpeg",
     "/teachers/megh-shyam.jpeg",
-    "/teachers/krishna-murari.jpeg",
     "/teachers/rakesh-kumar.jpeg",
-    "/teachers/vikram-babu.jpeg",
-    "/teachers/vineet-sharma.jpeg",
     "/teachers/sandeep-kumar.jpeg",
+    "/teachers/vineet-sharma.jpeg",
+    "/teachers/vikram-babu.jpeg",
     "/teachers/shivam-varshney.jpeg",
-    "/teachers/hemalata-garg.jpeg",
     "/teachers/anilkumar-Kaushik.jpeg",
+    "/teachers/dharmvir-sharma.jpeg",
+    "/teachers/hemalata-garg.jpeg",
   ][i],
 
-
   experience: `${(i % 5) + 2}+ Years`,
-
   students: "100+",
-
   projects: "120+",
-
   rating: "4.9",
 
   skills: [
@@ -86,41 +81,36 @@ const teachers = Array.from({ length: 12 }, (_, i) => ({
     "Editing",
   ],
 
-  // NEW fields
   email: [
     "bhagwati@example.com",
-    " dnsharma779@gmail.com",
-
-
-    " dharmvirsharma15@gmail.com ",
-    "vineetupadhyay2014@gmail.com ",
-    " sharmameghshyam6@gmail.com ",
-    " krishnamurari8532@gmail.com ",
-    " glpathak779@gmail.com ",
-    " vikrambabu101271@gmail.com ",
-    " vineetsharma1600@gmail.com",
-    " sandeepksharma4243@gmail.com ",
-    "mth.shivam20@gmail.com ",
+    "dnsharma779@gmail.com",
+    "krishnamurari8532@gmail.com",
+    "vineetupadhyay2014@gmail.com",
+    "sharmameghshyam6@gmail.com",
+    "glpathak779@gmail.com",
+    "sandeepksharma4243@gmail.com",
+    "vineetsharma1600@gmail.com",
+    "vikrambabu101271@gmail.com",
+    "mth.shivam20@gmail.com",
+    "pt.akkaushik1997@gmail.com",
+    "dharmvirsharma15@gmail.com",
     "neerajkaushik734@gmail.com",
-        "pt.akkaushik1997@gmail.com",
   ][i],
 
   degree: [
-    "M A Sanskrit Lt",
-    "M A I G D Bombay",
+    "M.A. (Sanskrit), L.T.",
+    "M.A., I.G.D. (Bombay)",
+    "M.Sc. (Mathematics), B.Ed.",
+    "M.Sc. (Chemistry), B.Ed.",
+    "M.A. (English), B.Ed.",
+    "M.A., B.Ed.",
+    "M.Sc. (Physics), B.Ed.",
+    "M.A., B.Ed.",
+    "M.A., B.Ed.",
+    "M.Sc. (Biology), B.Ed.",
+    "M.Sc. (Physics)",
     "B.Sc., B.Ed.",
-    "M Sc (Chemistry) B.Ed.",
-    "M A English, B.Ed.",
-    "M.Sc. , B.Ed.",
-    "M.A. , B.Ed.",
-    "M.A. , B.Ed.",
-    "M.Sc. , B.Ed.",
-    " M.Sc. , B.Ed.",
-    "Home Science.",
-    "M.sc Physics",
-
- 
-    "MCA",
+    "B.Sc.",
   ][i],
 }));
 
@@ -130,10 +120,10 @@ const supportStaff = [
   {
     id: 1,
     name: "Dr. Pavan Kumar Ravat",
-    role: "Medical Officer",
+    role: "M.D. (Medicine)",
     image: "/staff/s.jpg",
  
-    phone: "+91 9876543210",
+    phone: "91-9997948930 ",
    
     department: "Medical Department",
   },
@@ -144,43 +134,43 @@ const supportStaff = [
     role: "Compounder",
     image: "/staff/s2.jpg",
     
-    phone: "+91 9410882205 ",
+    phone: "+91-9410882205",
     
-    department: "Pharmacist ",
+    department: "Pharmacist",
   },
 
   {
     id: 3,
-    name: "Mahesh Kumar",
-    role: "Security Guard",
+    name: "Rajesh Kaushik ",
+    role: "Peon",
     image: "/staff/s3.jpg",
  
-    phone: "+91 9876543210",
+    phone: "+91 9756578303",
     
-    department: "Security",
+    // department: "Security",
   },
 
-  {
-    id: 4,
-    name: "Ramesh",
-    role: "Peon",
-    image: "/staff/s4.jpg",
+  // {
+  //   id: 4,
+  //   name: "Ramesh",
+  //   role: "Peon",
+  //   image: "/staff/s4.jpg",
  
-    phone: "+91 9876543210",
+  //   phone: "+91 9876543210",
    
-    department: "Support Staff",
-  },
+  //   department: "Support Staff",
+  // },
 
-  {
-    id: 5,
-    name: "Mohan",
-    role: "Driver",
-    image: "/staff/s5.jpg",
+  // {
+  //   id: 5,
+  //   name: "Mohan",
+  //   role: "Driver",
+  //   image: "/staff/s5.jpg",
    
-    phone: "+91 9876543210",
+  //   phone: "+91 9876543210",
  
-    department: "Transport",
-  },
+  //   department: "Transport",
+  // },
 
   {
     id: 6,
@@ -341,8 +331,7 @@ export default function Teachers() {
             Through Education
           </h1>
   
-         
-  
+      
         </div>
   
         {/* RIGHT IMAGE FIX */}
@@ -429,8 +418,6 @@ export default function Teachers() {
   </section>
 
 {/*  founder about  section */}
-
- 
 <section
   className="
   relative
@@ -749,14 +736,8 @@ border-[#F8F400]
 
 </section>
 
-
-
-
-
 {/* second founder abiout section */}
 
-
- 
 <section
   className="
   relative
@@ -1145,167 +1126,131 @@ grid
 
 grid-cols-1
 sm:grid-cols-2
-lg:grid-cols-3
+lg:grid-cols-4
 
 gap-7
 "
 >
 
 {teachers.map((teacher) => (
-
-<div
-  key={teacher.id}
-  className="
-    group
-    relative
-    overflow-hidden
-    rounded-[32px]
-    bg-white
-    border border-orange-100
-    shadow-xl
-    hover:-translate-y-3
-    hover:shadow-2xl
-    duration-500
-  "
->
-  {/* Decorative Background */}
-  <div className="absolute inset-0 pointer-events-none">
-    <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-[#FF6A00]/10 blur-3xl" />
-    <div className="absolute -bottom-16 -left-16 w-40 h-40 rounded-full bg-[#B60F17]/10 blur-3xl" />
-  </div>
-
-  {/* Top Section */}
-  <div className="relative h-40 bg-gradient-to-r from-[#B60F17] via-[#D63C12] to-[#FF6A00] rounded-b-[45px]">
+  <div
+    key={teacher.id}
+    className="
+      group
+      relative
+      rounded-2xl
+      bg-white
+      border
+      border-gray-200
+      p-5
+      pl-7
+      text-center
+      shadow-sm
+      transition-all
+      duration-300
+      hover:-translate-y-1
+      hover:shadow-lg
+    "
+  >
+    {/* Left Orange Theme Line */}
     <div
       className="
         absolute
-        left-1/2
-        bottom-0
-        -translate-x-1/2
-        translate-y-1/2
+        left-0
+        top-4
+        bottom-4
+        w-1.5
+        rounded-r-full
+        bg-gradient-to-b
+        from-[#B60F17]
+        via-[#FF6A00]
+        to-[#F8F000]
+      "
+    />
+
+    {/* Image */}
+    <div
+      className="
+        relative
+        mx-auto
+        h-28
+        w-28
+        overflow-hidden
+        rounded-2xl
+        bg-gray-100
       "
     >
-      <div
+      <Image
+        src={teacher.image}
+        alt={teacher.name}
+        fill
         className="
-          relative
-          w-36
-          h-36
-          rounded-full
-          overflow-hidden
-          border-[6px]
-          border-white
-          shadow-2xl
-          ring-4
-          ring-[#F8F000]
+          object-cover
+          transition-transform
+          duration-500
+          group-hover:scale-105
         "
-      >
-        <Image
-          src={teacher.image}
-          alt={teacher.name}
-          fill
-          className="object-cover group-hover:scale-110 duration-700"
-        />
-      </div>
+      />
     </div>
-  </div>
 
-  {/* Content */}
-  <div className="pt-24 px-7 pb-8 text-center">
-
-    <h3 className="text-2xl font-black text-gray-800">
+    {/* Name */}
+    <h3
+      className="
+        mt-4
+        text-lg
+        font-bold
+        text-gray-900
+      "
+    >
       {teacher.name}
     </h3>
 
-    <span
+    {/* Role */}
+    <p
       className="
-        inline-flex
-        mt-3
-        px-5
-        py-2
-        rounded-full
+        mt-1
         text-sm
         font-semibold
-        text-[#F8F000]
-        bg-gradient-to-r
-        from-[#B60F17]
-        to-[#FF6A00]
+        text-[#B60F17]
       "
     >
       {teacher.role}
-    </span>
-
-    <p className="mt-5 text-gray-600 leading-7 line-clamp-3">
-      {teacher.degree}
     </p>
 
-    {/* Info */}
-    <div className="mt-6 space-y-3">
+    {/* Divider */}
+    <div className="mx-auto my-4 h-px w-16 bg-gray-200" />
 
-      <div
-        className="
-          flex
-          items-center
-          justify-center
-          gap-2
-          bg-orange-50
-          rounded-xl
-          py-2
-        "
-      >
-        <Mail className="w-4 h-4 text-[#B60F17]" />
-        <span className="text-sm text-gray-700">
-          {teacher.email}
-        </span>
-      </div>
-
-      <div
-        className="
-          flex
-          items-center
-          justify-center
-          gap-2
-          bg-yellow-50
-          rounded-xl
-          py-2
-        "
-      >
-        <GraduationCap className="w-4 h-4 text-[#B60F17]" />
-        <span className="text-sm text-gray-700">
-          {teacher.degree}
-        </span>
-      </div>
-
-    </div>
-
-    {/* Button */}
-
-
-    {/* <Link
-      href="/about"
+    {/* Degree */}
+    <div
       className="
-        mt-7
-        inline-flex
+        flex
         items-center
         justify-center
-        w-full
-        py-3
-        rounded-xl
-        font-semibold
-        text-[#F8F000]
-        bg-gradient-to-r
-        from-[#B60F17]
-        to-[#FF6A00]
-        hover:scale-105
-        hover:shadow-xl
-        duration-300
+        gap-2
+        text-sm
+        text-gray-600
       "
     >
-      Explore →
-    </Link> */}
+      <GraduationCap className="h-4 w-4 text-[#B60F17]" />
+      <span>{teacher.degree}</span>
+    </div>
 
+    {/* Email */}
+    <div
+      className="
+        mt-2
+        flex
+        items-center
+        justify-center
+        gap-2
+        text-xs
+        text-gray-500
+      "
+    >
+      <Mail className="h-4 w-4 shrink-0 text-[#B60F17]" />
+      <span className="break-all">{teacher.email}</span>
+    </div>
   </div>
-</div>
-
 ))}
 
 </div>
@@ -1338,7 +1283,7 @@ gap-7
       </h2>
 
 <p className="mt-5 text-gray-800">
-Medical Staff
+Medical & Support Staff Layout
 </p>
 
 </div>
@@ -1347,62 +1292,60 @@ Medical Staff
  
 <div
   className="
-  grid
-  grid-cols-1
-  sm:grid-cols-2
-  lg:grid-cols-3
-  gap-7
-  mt-14
-"
->
-  {supportStaff.map((staff) => (
-
-   <div
-  key={staff.id}
-  className="
-    group
-    relative
-    overflow-hidden
-    rounded-[32px]
-    bg-white
-    border border-orange-100
-    shadow-xl
-    hover:-translate-y-3
-    hover:shadow-2xl
-    duration-500
+    grid
+    grid-cols-1
+    sm:grid-cols-2
+    lg:grid-cols-4
+    gap-7
+    mt-14
   "
 >
-  {/* Decorative Background */}
-  <div className="absolute inset-0 pointer-events-none">
-    <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-[#FF6A00]/10 blur-3xl" />
-    <div className="absolute -bottom-16 -left-16 w-40 h-40 rounded-full bg-[#B60F17]/10 blur-3xl" />
-  </div>
-
-  {/* Header */}
-  <div className="relative h-40 bg-gradient-to-r from-[#B60F17] via-[#D63C12] to-[#FF6A00] rounded-b-[45px]">
-
-    {/* Image */}
+  {supportStaff.map((staff) => (
     <div
+      key={staff.id}
       className="
-        absolute
-        left-1/2
-        bottom-0
-        -translate-x-1/2
-        translate-y-1/2
+        group
+        relative
+        rounded-2xl
+        bg-white
+        border
+        border-gray-200
+        p-5
+        pl-7
+        text-center
+        shadow-sm
+        transition-all
+        duration-300
+        hover:-translate-y-1
+        hover:shadow-lg
       "
     >
+      {/* Left Theme Line */}
+      <div
+        className="
+          absolute
+          left-0
+          top-4
+          bottom-4
+          w-1.5
+          rounded-r-full
+          bg-gradient-to-b
+          from-[#B60F17]
+          via-[#FF6A00]
+          to-[#F8F000]
+        "
+      />
+
+      {/* Image */}
       <div
         className="
           relative
-          w-36
-          h-36
-          rounded-full
+          mx-auto
+          h-28
+          w-28
           overflow-hidden
-          border-[6px]
-          border-white
-          shadow-2xl
-          ring-4
-          ring-[#F8F000]
+          rounded-2xl
+          bg-gray-100
         "
       >
         <Image
@@ -1411,131 +1354,80 @@ Medical Staff
           fill
           className="
             object-cover
-            group-hover:scale-110
-            duration-700
+            transition-transform
+            duration-500
+            group-hover:scale-105
           "
         />
       </div>
-    </div>
-  </div>
 
-  {/* Content */}
-  <div className="pt-24 px-7 pb-8 text-center">
+      {/* Name */}
+      <h3
+        className="
+          mt-4
+          text-lg
+          font-bold
+          text-gray-900
+        "
+      >
+        {staff.name}
+      </h3>
 
-    {/* Name */}
-    <h3 className="text-2xl font-black text-gray-800">
-      {staff.name}
-    </h3>
+      {/* Role */}
+      <p
+        className="
+          mt-1
+          text-sm
+          font-semibold
+          text-[#B60F17]
+        "
+      >
+        {staff.role}
+      </p>
 
-    {/* Role */}
-    <span
-      className="
-        inline-flex
-        mt-3
-        px-5
-        py-2
-        rounded-full
-        text-sm
-        font-semibold
-        text-[#F8F000]
-        bg-gradient-to-r
-        from-[#B60F17]
-        to-[#FF6A00]
-      "
-    >
-      {staff.role}
-    </span>
+      {/* Divider */}
+      <div className="mx-auto my-4 h-px w-16 bg-gray-200" />
 
-    {/* Description */}
-    <p className="mt-5 text-gray-600 leading-7 line-clamp-3">
-      {staff.department}
-    </p>
-
-    {/* Details */}
-    <div className="mt-6 space-y-3">
-
+      {/* Phone */}
       <div
         className="
           flex
           items-center
           justify-center
           gap-2
-          bg-orange-50
-          rounded-xl
-          py-2
+          text-sm
+          text-gray-600
         "
       >
-        <Phone className="w-4 h-4 text-[#B60F17]" />
-        <span className="text-sm text-gray-700">
+        <Phone className="h-4 w-4 text-[#B60F17]" />
+
+        <span>
           {staff.phone}
         </span>
       </div>
 
-      <div
-        className="
-          flex
-          items-center
-          justify-center
-          gap-2
-          bg-yellow-50
-          rounded-xl
-          py-2
-        "
-      >
-        <Briefcase className="w-4 h-4 text-[#B60F17]" />
-        <span className="text-sm text-gray-700">
-          {staff.department}
-        </span>
-      </div>
+      {/* Department */}
+      {staff.department && (
+        <div
+          className="
+            mt-2
+            flex
+            items-center
+            justify-center
+            gap-2
+            text-sm
+            text-gray-500
+          "
+        >
+          <Briefcase className="h-4 w-4 text-[#B60F17]" />
 
-      {/* Timing (Future Use) */}
-      {/*
-      <div
-        className="
-          flex
-          items-center
-          justify-center
-          gap-2
-          bg-blue-50
-          rounded-xl
-          py-2
-        "
-      >
-        <Clock3 className="w-4 h-4 text-[#B60F17]" />
-        <span className="text-sm text-gray-700">
-          {staff.timing}
-        </span>
-      </div>
-      */}
+          <span>
+            {staff.department}
+          </span>
+        </div>
+      )}
+
     </div>
-
-    {/* Button */}
-
-    {/* <Link
-      href="/contact"
-      className="
-        mt-7
-        inline-flex
-        items-center
-        justify-center
-        w-full
-        py-3
-        rounded-xl
-        font-semibold
-        text-[#F8F000]
-        bg-gradient-to-r
-        from-[#B60F17]
-        to-[#FF6A00]
-        hover:scale-105
-        hover:shadow-xl
-        duration-300
-      "
-    >
-      View Profile →
-    </Link> */}
-
-  </div>
-</div>
   ))}
 </div>
 </div>

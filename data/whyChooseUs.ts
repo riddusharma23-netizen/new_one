@@ -418,13 +418,13 @@ Whether a student chooses a university degree, diploma, technical education, voc
 
   button: "Explore More",
 
-  image: "/why/clinic4.jpg",
+  image: "/why/stationery/ste1.png",
 
   gallery: [
-    "/why/digital/primary.jpg",
-    "/why/digital/digital-2.jpg",
-    "/why/digital/digital-3.jpg",
-    "/why/digital/digital-4.jpg",
+     "/why/stationery/ste1.png",
+    "/why/stationery/ste2.png",
+    "/why/stationery/ste3.png",
+    "/why/stationery/ste4.png",
   ],
 
   sections: [
@@ -434,13 +434,13 @@ Whether a student chooses a university degree, diploma, technical education, voc
       content:
         "Required books and study materials are provided to students at the same price at which they are purchased by the school, without adding any profit or extra margin.",
 
-      image: "/why/digital/class-1.jpg",
+      image: "/why/stationery/ste2.png",
 
       points: [
         "No-profit, no-loss pricing",
         "Books provided at actual purchase cost",
-        "No additional profit margin",
-        "Affordable learning materials",
+        // "No additional profit margin",
+        // "Affordable learning materials",
       ],
     },
 
@@ -450,13 +450,13 @@ Whether a student chooses a university degree, diploma, technical education, voc
       content:
         "By providing books and essential stationery at cost price, Smt. Champi Devi Inter College helps families reduce educational expenses while ensuring students have the materials they need for their studies.",
 
-      image: "/why/digital/class-2.jpg",
+      image:  "/why/stationery/ste3.png",
 
       points: [
         "Reduced education expenses",
         "Support for rural families",
-        "Essential study materials",
-        "Equal access to learning resources",
+        // "Essential study materials",
+        // "Equal access to learning resources",
       ],
     },
   ],
@@ -481,7 +481,7 @@ Whether a student chooses a university degree, diploma, technical education, voc
     "/why/clinic4.jpg",
     "/why/cl2.png",
     "/why/cl1.png",
-    "/why/medical/medical-4.jpg",
+    "/why/clinic4.jpg",
   ],
 
   sections: [
