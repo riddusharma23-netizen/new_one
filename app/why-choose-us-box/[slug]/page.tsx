@@ -266,8 +266,6 @@ export default async function WhyChooseUsDetailPage({
                   to-[#F8F000]
                 "
               />
-
-
               {/* Description */}
 
               <p

@@ -141,15 +141,7 @@ features: [
     image: "/labs/chemistry/chem(2).png",
   },
 
-  //   {
-  //  title:"Acid & Base Experiments",
-  //   image: "/labs/chemistry/features/laboratory-safety.jpg",
-  // },
-
-  //  {
-  //  title:"Modern Chemicals",
-  //   image: "/labs/chemistry/features/laboratory-safety.jpg",
-  // },
+ 
 ],
 
 
@@ -364,9 +356,9 @@ content:
     gallery: [
       "/labs/homescience/homescience1.png",
       "/labs/homescience/f1.png",
-      "/labs/home-science/home-2.jpg",
-      "/labs/home-science/home-3.jpg",
-      // "/labs/home-science/home-4.jpg",
+      "/labs/computerlab/cc1.png",
+      "/labs/home-science/f1.jpg",
+     "labs/home-science/sc4.png"
     ],
 
     description:

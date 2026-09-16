@@ -233,17 +233,14 @@ Whether a student chooses a university degree, diploma, technical education, voc
   // },
 
 //  university 
-
-
   {
     id: 5,
     slug: "University-connections",
     title: "University-connections",
     icon: "MonitorSmartphone",
 
-    description: "Exclusive academic attachment with world-class institutions like Bhaktivedanta University and Mangalayatan University (Beswan), bridge the gap to provide global educational opportunities for our rural students.",
-     
-
+    description: "We are connected with several reputed universities, including Mangalayatan University and Bhaktivedanta University, to provide our students with better opportunities for higher education and academic growth.",
+    
     button: "Explore More",
 
     image: "/why/clinic4.jpg",
@@ -254,7 +251,7 @@ Whether a student chooses a university degree, diploma, technical education, voc
       "/why/digital/digital-3.jpg",
       "/why/digital/digital-4.jpg",
     ],
-
+     
     sections: [
       {
         title: "Interactive Smart Classes",
