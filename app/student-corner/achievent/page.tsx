@@ -296,7 +296,7 @@ export default function ScholarshipPage() {
                 {/* ─── HEADER ─────────────────────────────────────────── */}
 
                 <div className="rounded-3xl overflow-hidden mb-6 shadow-2xl">
-                    <div className="bg-gradient-to-r from-[#1e3a5f] via-[#2563eb] to-[#3b82f6] p-6 md:p-10 text-white relative">
+                    <div className="bg-gradient-to-r from-[#1e3a5f] via-[#BD272D] to-[#F8F000] p-6 md:p-10 text-white relative">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
                         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
 

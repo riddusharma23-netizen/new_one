@@ -338,8 +338,6 @@ content:
 
 // computer lab ****************************
 
-
-
   {
     id: 5,
 
@@ -356,13 +354,13 @@ content:
     gallery: [
       "/labs/homescience/homescience1.png",
       "/labs/homescience/f1.png",
-      "/labs/computerlab/cc1.png",
+      "/labs/computerlab/com.jpeg",
       "/labs/home-science/f1.jpg",
      "labs/home-science/sc4.png"
     ],
 
     description:
-      "Our Home Science Lab provides students with practical learning opportunities in nutrition, food preparation, textile studies, health, and home management. The lab is designed to help students develop essential life skills through hands-on activities, experiments, and creative projects in a safe and well-equipped learning environment.",
+      "Our modern Computer Laboratory provides students with practical exposure to computers, digital tools, and technology. Students learn essential computer skills, programming basics, internet usage, and modern applications in a well-equipped and supportive learning environment. The lab helps students develop digital confidence, logical thinking, and technical skills for their future education and careers",
 
     // features: [
     //   "Cooking Practice",
@@ -377,19 +375,19 @@ content:
     features: [
   {
     title: "Cooking Practice",
-    image: "/labs/homescience/homescience1.png",
+    image:   "/labs/computerlab/com.jpeg",
   },
   {
     title: "Nutrition Education",
-    image: "/labs/homescience/f1.png",
+    image: "/labs/computerlab/come1.jpeg",
   },
   {
     title: "Textile Skills",
-    image: "/labs/homescience/tex.png",
+    image: "/labs/computerlab/cc1.png",
   },
   {
     title: "Health & Hygiene",
-       image: "/labs/homescience/f1.png",
+       image: "/labs/computerlab/com.jpeg",
   },
  
 ],
@@ -407,7 +405,7 @@ content:
 
 content:
   "Students develop essential computer skills through practical learning and hands-on activities. They learn computer fundamentals, typing, MS Office, internet usage, digital communication, file management, and safe use of technology, helping them become confident and capable in today’s digital world.",
-        image: "/labs/homescience/tex.png",
+        image:  "/labs/computerlab/come1.jpeg",
       },
 
       {
@@ -416,7 +414,7 @@ content:
 content:
   "Students gain practical experience with computers and digital tools in a real classroom environment. They learn how to work with common applications, manage files, use the internet responsibly, and complete basic academic tasks on computers, building useful skills for higher studies and everyday life.",
 
-    image: "/labs/homescience/f1.png",
+    image: "/labs/computerlab/com.jpeg",
       },
     ],
   },
