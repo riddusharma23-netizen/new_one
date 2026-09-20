@@ -11,6 +11,7 @@ import {
 
 export const whyChooseUs = [
   {
+
     id: 1,
     slug: "Modern-science-labs",
     title: "Modern Science Labs",
@@ -364,7 +365,7 @@ Whether a student chooses a university degree, diploma, technical education, voc
       "/why/digital/pl3.png",
       "/why/digital/PLA1.JPG",
       "/why/digital/PLA2.JPG",
-      "/why/digital/digital-4.jpg",
+      "/why/digital/pl3.png",
     ],
 
     sections: [
@@ -376,12 +377,12 @@ Whether a student chooses a university degree, diploma, technical education, voc
 
         image: "/why/digital/PLA2.jpg",
 
-        points: [
-          "Smart Boards",
-          "Projector Based Learning",
-          "Digital Notes",
-          "Interactive Teaching",
-        ],
+        // points: [
+        //   "Smart Boards",
+        //   "Projector Based Learning",
+        
+       
+        // ],
       },
 
       {
@@ -392,12 +393,12 @@ Whether a student chooses a university degree, diploma, technical education, voc
 
         image: "/why/digital/pl3.png",
 
-        points: [
-          "Visual Learning",
-          "Video Lectures",
-          "Online Resources",
-          "Digital Assessments",
-        ],
+     points: [
+  "Sports & Fitness Activities",
+  "Well-Maintained Playground",
+  "Team Games & Recreation",
+  "Green Garden Environment",
+],
       },
     ],
   },
@@ -472,13 +473,13 @@ Whether a student chooses a university degree, diploma, technical education, voc
 
   button: "Explore More",
 
-  image: "/why/clinic4.jpg",
+  image: "/why/pr.png",
 
   gallery: [
-    "/why/clinic4.jpg",
+    "/why/pr.png",
     "/why/cl2.png",
     "/why/cl1.png",
-    "/why/clinic4.jpg",
+    "/why/pr.png",
   ],
 
   sections: [
@@ -493,8 +494,8 @@ Whether a student chooses a university degree, diploma, technical education, voc
       points: [
         "Free Medical Checkups",
         "Doctor Consultation",
-        "Basic Health Screening",
-        "Support for Students and Villagers",
+        // "Basic Health Screening",
+        // "Support for Students and Villagers",
       ],
     },
 

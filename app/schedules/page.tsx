@@ -9,17 +9,18 @@ const CLASSES = ['1A', '1B', '2A', '2B', '3A', '3B', '4A', '4B'];
 
 const TEACHERS = [
   { name: 'Mr. Murari Sharma', subject: 'Math' },
-  { name: 'Ms. Sandeep Sharma', subject: 'Science' },
-  { name: 'Mr. Shivam ', subject: 'English' },
-  { name: 'Ms. Hemlata Sharma', subject: 'Hindi' },
-  { name: 'Mr. Rakesh Sharma', subject: 'Social Studies' },
-  { name: 'Ms. Dharamvir Sharma', subject: 'Computer' },
+  { name: 'Ms. Sandeep Sharma', subject: 'Physics' },
+  { name: 'Mr. Shivam ', subject: 'Biology' },
+  { name: 'Ms. Hemlata Sharma', subject: 'science' },
+  { name: 'Mr. Rakesh Sharma', subject: 'History' },
+  { name: 'Ms. Dharamvir Sharma', subject: 'Math' },
   { name: 'Mr. Dinesh', subject: 'Math' },
-  { name: 'Ms. Devkinandan Sharma', subject: 'Science' },
-  { name: 'Mr. Vineet Sharma', subject: 'English' },
-  { name: 'Ms. Vineet Sir', subject: 'Art' },
-  { name: 'Mr. Mehta', subject: 'Music' },
-  { name: 'Ms. Desai', subject: 'PE' },
+  { name: 'Ms. Devkinandan Sharma', subject: 'SST' },
+  { name: 'Mr. Vineet Sharma', subject: 'Chemistory' },
+  { name: 'Ms. Vineet Sir', subject: 'English' },
+  { name: 'Mr. Anil Kaushik', subject: 'Science' },
+  { name: 'Ms. Bhagwati Prasad', subject: 'Hindi' },
+  { name: 'Ms. Suvarna', subject: 'Computer' },
 ];
 
 // ---------- HELPERS ----------

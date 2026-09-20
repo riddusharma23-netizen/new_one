@@ -444,7 +444,7 @@ export default function ScholarshipPage() {
                     <div className="overflow-x-auto max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-200 scrollbar-track-transparent">
                         <table className="w-full text-sm">
                             <thead className="sticky top-0 z-10">
-                                <tr className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+                                <tr className="bg-gradient-to-r from-[#A41814] to-indigo-50 border-b border-gray-200">
                                     <th className="p-3 text-left text-sm font-semibold text-gray-600">#</th>
                                     <th className="p-3 text-left text-sm font-semibold text-gray-600">Student Name</th>
                                     <th className="p-3 text-left text-sm font-semibold text-gray-600">Father's Name</th>
