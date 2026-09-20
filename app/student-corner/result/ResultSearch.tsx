@@ -20,8 +20,26 @@ interface ResultForm {
   session: string;
 }
 
+interface ResultSubject {
+  subject: string;
+  max: number;
+  obtain: number;
+  grade: string;
+}
+
+interface ResultData {
+  studentName: string;
+  fatherName: string;
+  motherName: string;
+  class: string;
+  section: string;
+  rollNo: string;
+  session: string;
+  subjects: ResultSubject[];
+}
+
 interface ResultSearchProps {
-  onResult: (data: any) => void;
+  onResult: (data: ResultData) => void;
 }
 
 const CLASS_OPTIONS = ["6", "7", "8", "9", "10", "11", "12"];
@@ -171,7 +189,7 @@ export default function ResultSearch({ onResult }: ResultSearchProps) {
 
       <form onSubmit={handleSubmit} className="px-8 sm:px-12 pt-8 pb-10 space-y-6">
         <p className="text-gray-500 text-sm sm:text-base -mt-2">
-          Enter the student's details below to view their result.
+          Enter the student&apos;s details below to view their result.
         </p>
 
         <div className="grid sm:grid-cols-2 gap-5">
@@ -182,7 +200,7 @@ export default function ResultSearch({ onResult }: ResultSearchProps) {
             <input
               value={form.studentName}
               onChange={(e) => update("studentName", e.target.value)}
-              placeholder="Enter student's full name"
+              placeholder="Enter student&apos;s full name"
               className="w-full h-14 px-4 rounded-xl border-2 border-gray-200 bg-[#FFFCF7] text-gray-800 font-medium placeholder:text-gray-400 focus:border-[#B60F17] outline-none transition focus-visible:ring-2 focus-visible:ring-[#FF6A00]"
             />
           </div>

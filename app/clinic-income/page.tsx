@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
     PieChart,
     Pie,
@@ -12,12 +12,16 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
-    LineChart,
-    Line,
-    Area,
-    AreaChart,
 } from "recharts";
-import { ChevronLeft, ChevronRight, TrendingUp, Users, Award, Calendar, RefreshCw, Sparkles, Stethoscope, Pill, Syringe } from "lucide-react";
+import { ChevronLeft, ChevronRight, TrendingUp, Award, RefreshCw, Sparkles, Stethoscope, Pill } from "lucide-react";
+
+interface ClinicRecord {
+    id: number;
+    year: number;
+    month: string;
+    type: "Clinic Income" | "Expenses" | "Doctors Fees";
+    amount: number;
+}
 
 // ─── DATA GENERATION (2021-2026) ─────────────────────────────────────────────
 
@@ -35,9 +39,9 @@ const BASE_AMOUNTS = {
 };
 
 // Generate data for a specific year
-function generateYearData(year: number) {
+function generateYearData(year: number): ClinicRecord[] {
     const base = BASE_AMOUNTS[String(year) as keyof typeof BASE_AMOUNTS];
-    const entries: any[] = [];
+    const entries: ClinicRecord[] = [];
     let id = 1;
 
     MONTHS.forEach((month, mi) => {
@@ -87,7 +91,7 @@ const monthlyDoctorFees = Math.round(
 }
 
 // Generate data for all years
-const ALL_DATA: Record<number, any[]> = {};
+const ALL_DATA: Record<number, ClinicRecord[]> = {};
 YEARS.forEach((y) => {
     ALL_DATA[y] = generateYearData(y);
 });
@@ -116,10 +120,6 @@ const TYPE_COLORS = {
 
 export default function ClinicIncomePage() {
     const [selectedYear, setSelectedYear] = useState(2025);
-    const [visibleData, setVisibleData] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [progress, setProgress] = useState(0);
-    const [animatedTotal, setAnimatedTotal] = useState(0);
     const [activeTab, setActiveTab] = useState<"all" | "income" | "expenses">("all");
 
     const yearData = useMemo(() => 
@@ -174,41 +174,10 @@ export default function ClinicIncomePage() {
         return Object.entries(map).map(([name, value]) => ({ name, value }));
     }, [filteredData]);
 
-    // ─── ANIMATED LOADING ──────────────────────────────────────────────────
-
-    useEffect(() => {
-        setIsLoading(true);
-        setProgress(0);
-        setVisibleData([]);
-        setAnimatedTotal(0);
-
-        const total = filteredData.length;
-        if (total === 0) {
-            setIsLoading(false);
-            return;
-        }
-
-        let index = 0;
-        const step = Math.max(1, Math.floor(total / 20));
-
-        const interval = setInterval(() => {
-            index = Math.min(index + step, total);
-            const slice = filteredData.slice(0, index);
-            setVisibleData(slice);
-            setProgress(Math.round((index / total) * 100));
-
-            const currentTotal = slice.reduce((s, d) => s + d.amount, 0);
-            setAnimatedTotal(currentTotal);
-
-            if (index >= total) {
-                clearInterval(interval);
-                setIsLoading(false);
-                setAnimatedTotal(totalIncome);
-            }
-        }, 80);
-
-        return () => clearInterval(interval);
-    }, [selectedYear, filteredData, totalIncome]);
+    const isLoading = false;
+    const progress = 100;
+    const visibleData = filteredData;
+    const animatedTotal = totalIncome;
 
     // ─── YEAR NAVIGATION ─────────────────────────────────────────────────
 

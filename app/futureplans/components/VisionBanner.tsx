@@ -20,7 +20,7 @@ export default function VisionBanner() {
 
             <h2 className="mt-6 text-4xl lg:text-6xl font-black leading-tight">
 
-              Building Tomorrow's
+              Building Tomorrow&apos;s
               Leaders Through
               Modern Education
 

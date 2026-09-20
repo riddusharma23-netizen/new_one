@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import {
   Monitor,
   Wifi,
@@ -12,7 +13,7 @@ interface Props {
   facilities: string[];
 }
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, LucideIcon> = {
   "Computer Lab": Monitor,
   "High Speed Internet": Wifi,
   Library: BookOpen,
@@ -58,7 +59,7 @@ export default function DepartmentFacilities({ facilities }: Props) {
                 </h3>
 
                 <p className="mt-3 text-slate-600">
-                  Well-equipped facility designed to improve students'
+                  Well-equipped facility designed to improve students&apos;
                   practical learning experience.
                 </p>
               </div>

@@ -1,7 +1,13 @@
 import Image from "next/image";
 
+interface Department {
+  banner: string;
+  title: string;
+  description: string;
+}
+
 interface Props {
-  department: any;
+  department: Department;
 }
 
 export default function DepartmentHero({ department }: Props) {

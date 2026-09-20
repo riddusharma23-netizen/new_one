@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   PieChart,
   Pie,
@@ -33,25 +33,28 @@ const CHART_COLORS = [
   "#14B8A6", "#F43F5E", "#8B5CF6", "#0EA5E9", "#D946EF",
 ];
 
+interface ExpenseRecord {
+  id: number;
+  year: number;
+  month: string;
+  item: string;
+  amount: number;
+}
+
 // ─── MAIN COMPONENT ──────────────────────────────────────────
 
 export default function ExpensePage() {
   const [selectedYear, setSelectedYear] = useState(2024);
   // Static exports have no runtime API routes. Keep the dashboard data in the bundle.
-  const [fullData] = useState<Record<number, any[]>>(FALLBACK_DATA);
+  const [fullData] = useState<Record<number, ExpenseRecord[]>>(FALLBACK_DATA);
   const [loading] = useState(false);
   const error: string | null = null;
-  const [visibleData, setVisibleData] = useState<any[]>([]);
-  const [animatedTotal, setAnimatedTotal] = useState(0);
 
   // ─── Fetch data from API ──────────────────────────────────
   // ─── Memoized computed data for selected year ─────────────
   const yearData = useMemo(() => fullData[selectedYear] || [], [fullData, selectedYear]);
-
-  const totalExpense = useMemo(
-    () => yearData.reduce((sum, d) => sum + d.amount, 0),
-    [yearData]
-  );
+  const visibleData = yearData;
+  const animatedTotal = yearData.reduce((sum, d) => sum + d.amount, 0);
 
   const highestEntry = useMemo(
     () => [...yearData].sort((a, b) => b.amount - a.amount)[0],
@@ -78,28 +81,6 @@ export default function ExpensePage() {
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
   }, [yearData]);
-
-  // ─── Animated loading of entries ──────────────────────────
-  useEffect(() => {
-    if (loading) return;
-    const total = yearData.length;
-    if (total === 0) {
-      setVisibleData([]);
-      setAnimatedTotal(0);
-      return;
-    }
-    let index = 0;
-    const step = Math.max(1, Math.floor(total / 20));
-    const interval = setInterval(() => {
-      index = Math.min(index + step, total);
-      const slice = yearData.slice(0, index);
-      setVisibleData(slice);
-      const currentTotal = slice.reduce((s, d) => s + d.amount, 0);
-      setAnimatedTotal(currentTotal);
-      if (index >= total) clearInterval(interval);
-    }, 70);
-    return () => clearInterval(interval);
-  }, [yearData, loading]);
 
   // ─── Navigation ────────────────────────────────────────────
   const goToYear = (dir: number) => {
@@ -557,6 +538,6 @@ function Card({
 }
 
 // ─── FALLBACK DATA (static) in case API fails ──────────────
-const FALLBACK_DATA: Record<number, any[]> = {
+const FALLBACK_DATA: Record<number, ExpenseRecord[]> = {
   // (same static data as before – you can paste your full static data here)
 };

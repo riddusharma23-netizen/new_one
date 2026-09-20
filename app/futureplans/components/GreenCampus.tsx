@@ -1,6 +1,7 @@
 'use client';
 
 import Image from "next/image";
+import type { LucideIcon } from "lucide-react";
 import {
   CheckCircle,
   Trees,
@@ -11,16 +12,15 @@ import {
 import { futurePlans } from "../data";
 
 export default function GreenCampus() {
+  const green = futurePlans[3];
 
-  const green = futurePlans[3] as {
-    title: string;
-    icon: any;
-    image: any;
-    description: string;
-    features: string[];
-  };
+  if (!green) {
+    return null;
+  }
 
-  const Icon = green.icon;
+  const Icon = green.icon as LucideIcon;
+  const imageSrc = green.image ?? "/futureplans/BAD-ROAD.jpg";
+  const features = green.features ?? [];
 
   return (
     <section className="py-24">
@@ -34,7 +34,7 @@ export default function GreenCampus() {
 
             <div className="overflow-hidden rounded-3xl border bg-white shadow-2xl">
               <Image
-                src={green.image}
+                src={imageSrc}
                 alt={green.title}
                 className="h-[560px] w-full object-cover transition duration-700 hover:scale-105"
               />
@@ -90,7 +90,7 @@ export default function GreenCampus() {
 
             <div className="mt-10 grid gap-5">
 
-              {green.features.map((item) => ( 
+              {features.map((item) => ( 
 
                 <div
                   key={item}

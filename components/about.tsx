@@ -386,16 +386,16 @@ export default function About() {
                   sm:leading-9
                 "
               >
-                "Our core mission is to provide high-quality modern education,
+                &quot;Our core mission is to provide high-quality modern education,
                 sustainable solar-powered facilities, digital literacy,
                 and strong moral values to rural students. Together, let us
-                build a bright and successful future for our children."
+                build a bright and successful future for our children.&quot;
 
 
-"Our core mission is to empower rural students by instilling strong moral and cultural
+&quot;Our core mission is to empower rural students by instilling strong moral and cultural
 values from the very beginning. We are dedicated to providing modern facilities that
 prepare our children for successful future studies and higher education. Our ultimate
-goal is to equip student with the skills and confidence needed to secure proper."
+goal is to equip student with the skills and confidence needed to secure proper.&quot;
 
               </p>
 

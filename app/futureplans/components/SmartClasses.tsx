@@ -1,6 +1,7 @@
 'use client';
 
 import Image from "next/image";
+import type { LucideIcon } from "lucide-react";
 import {
   CheckCircle,
   MonitorSmartphone,
@@ -8,16 +9,15 @@ import {
 import { futurePlans } from "../data";
 
 export default function SmartClasses() {
+  const smart = futurePlans[1];
 
-  const smart = futurePlans[1] as {
-    title: string;
-    icon: any;
-    image: any;
-    description: string;
-    features: string[];
-  };
+  if (!smart) {
+    return null;
+  }
 
-  const Icon = smart.icon;
+  const Icon = smart.icon as LucideIcon;
+  const imageSrc = smart.image ?? "/futureplans/BAD-ROAD.jpg";
+  const features = smart.features ?? [];
 
   return (
     <section className="py-24">
@@ -33,7 +33,7 @@ export default function SmartClasses() {
             <div className="overflow-hidden rounded-3xl shadow-2xl border bg-white">
 
               <Image
-                src={smart.image}
+                src={imageSrc}
                 alt={smart.title}
                 className="w-full h-[520px] object-cover hover:scale-105 transition duration-700"
               />
@@ -94,7 +94,7 @@ export default function SmartClasses() {
 
             <div className="mt-10 grid md:grid-cols-2 gap-5">
 
-              {smart.features.map((feature) => (
+              {features.map((feature) => (
 
                 <div
                   key={feature}

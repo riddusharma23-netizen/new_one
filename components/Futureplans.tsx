@@ -2,13 +2,8 @@
 import Image from "next/image";
 import {
     Road,
-    MonitorSmartphone,
-    FlaskConical,
-    Bus,
     ShieldCheck,
-    Trees,
     CheckCircle,
-    ArrowRight,
     Clock,
     Users,
     Award,
@@ -43,14 +38,13 @@ export default function FuturePlans() {
                     </span>
                     <h2 className="mt-5   text-4xl lg:text-6xl font-black' leading-tight   ">
                         Our Future<span className="text-[#B60F17]"> Plan</span>
-                       
                     </h2>
                     <p className="mt-5 text-gray-900 leading-6 max-w-3xl mx-auto">
-"Repairing and paving the damaged connecting roads leading to the school
+&quot;Repairing and paving the damaged connecting roads leading to the school
 remains our top priority. This extensive regional initiative is designed keeping in mind
 the convenience, smooth transit, and safety of the residents of all neighboring
 link villages alongside Jamon. Our ultimate goal is to ensure a safe, reliable, and
-seamless commute for the entire rural network, significantly accelerating the socioeconomic growth of all connected rural areas."
+seamless commute for the entire rural network, significantly accelerating the socioeconomic growth of all connected rural areas.&quot;
                     </p>
                 </div>
 
@@ -183,7 +177,7 @@ seamless commute for the entire rural network, significantly accelerating the so
                     <div className="bg-gradient-to-br from-[#B60F17] to-[#DF6525] rounded-3xl p-8 shadow-xl text-white flex flex-col justify-center">
                         <div className="text-5xl leading-none mb-2">“</div>
                         <p className="text-lg font-medium leading-relaxed opacity-95">
-                            This road is not just concrete — it's a lifeline for our
+                            This road is not just concrete — it&apos;s a lifeline for our
                             children, our farmers, and every family in this village.
                         </p>
                         <div className="mt-4 flex items-center gap-3">

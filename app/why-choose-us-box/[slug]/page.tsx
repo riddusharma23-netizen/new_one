@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import {
-  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   GraduationCap,
@@ -672,23 +671,23 @@ export default async function WhyChooseUsDetailPage({
 
                 {/* Points */}
 
-                {section.points?.length > 0 && (
+                {(() => {
+                  const points = Array.isArray(section.points) ? section.points : [];
 
-                  <div className="mt-7 grid gap-3">
-
-                    {section.points.map((point) => (
-
-                      <div
-                        key={point}
-                        className="
-                          flex
-                          items-center
-                          gap-3
-                          rounded-xl
-                          bg-[#fffaf7]
-                          p-3
-                        "
-                      >
+                  return points.length > 0 ? (
+                    <div className="mt-7 grid gap-3">
+                      {points.map((point) => (
+                        <div
+                          key={point}
+                          className="
+                            flex
+                            items-center
+                            gap-3
+                            rounded-xl
+                            bg-[#fffaf7]
+                            p-3
+                          "
+                        >
 
                         <span
                           className="
@@ -706,23 +705,20 @@ export default async function WhyChooseUsDetailPage({
                           <CheckCircle2 size={17} />
                         </span>
 
-                        <span
-                          className="
-                            text-sm
-                            font-semibold
-                            text-[#072F60]
-                          "
-                        >
-                          {point}
-                        </span>
-
-                      </div>
-
-                    ))}
-
-                  </div>
-
-                )}
+                          <span
+                            className="
+                              text-sm
+                              font-semibold
+                              text-[#072F60]
+                            "
+                          >
+                            {point}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null;
+                })()}
 
               </div>
 
@@ -929,9 +925,7 @@ export default async function WhyChooseUsDetailPage({
    ================================================================ */
 
 function getPoints(item: { sections?: Array<{ points?: string[] }> }): string[] {
-  const points = item.sections?.flatMap(
-    (section: any) => section.points || []
-  );
+  const points = item.sections?.flatMap((section: { points?: string[] }) => section.points ?? []);
 
   if (points?.length) {
     return [...new Set(points)].slice(0, 8);

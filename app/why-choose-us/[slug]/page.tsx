@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import {
-  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   GraduationCap,
@@ -976,9 +975,7 @@ export default async function WhyChooseUsDetailPage({
    ================================================================ */
 
 function getPoints(item: { sections?: Array<{ points?: string[] }> }): string[] {
-  const points = item.sections?.flatMap(
-    (section: any) => section.points || []
-  );
+  const points = item.sections?.flatMap((section: { points?: string[] }) => section.points ?? []);
 
   if (points?.length) {
     return [...new Set(points)].slice(0, 8);

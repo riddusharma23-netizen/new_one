@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
     PieChart,
     Pie,
@@ -35,9 +35,21 @@ const CHART_COLORS = [
     "#14B8A6", "#F43F5E", "#8B5CF6", "#0EA5E9", "#D946EF",
 ];
 
+interface ScholarshipRecord {
+    id: number;
+    studentName: string;
+    fatherName: string;
+    totalTuitionFee: number;
+    amountPayable: number;
+    village: string;
+    college: string;
+    class: string;
+    mobile: string;
+}
+
 // ─── FALLBACK DATA (used if API fails) ────────────────────────────────
 
-const FALLBACK_DATA: Record<string, any[]> = {
+const FALLBACK_DATA: Record<string, ScholarshipRecord[]> = {
     "2020-21": [
         { id: 1, studentName: "MUNESH KUMAR", fatherName: "SHYAM BABOO", totalTuitionFee: 7500, amountPayable: 3750,
             village: "jamon", college: "ch.c.s.s.d c iglas", class: "B.Sc. Ag", mobile: "" },
@@ -192,10 +204,8 @@ export default function ScholarshipPage() {
     const [selectedYear, setSelectedYear] = useState("2023-24");
     const [searchQuery, setSearchQuery] = useState("");
     // Static exports have no runtime API routes. Keep the scholarship data in the bundle.
-    const [fullData] = useState<Record<string, any[]>>(FALLBACK_DATA);
+    const [fullData] = useState<Record<string, ScholarshipRecord[]>>(FALLBACK_DATA);
     const [loading] = useState(false);
-    const [visibleData, setVisibleData] = useState<any[]>([]);
-    const [animatedTotal, setAnimatedTotal] = useState({ students: 0, tuition: 0, payable: 0 });
     const [showMobile, setShowMobile] = useState(true);
 
     // ─── Fetch data from API ──────────────────────────────────────────
@@ -217,12 +227,14 @@ export default function ScholarshipPage() {
         );
     }, [yearData, searchQuery]);
 
-    const stats = useMemo(() => {
+    const animatedTotal = useMemo(() => {
         const students = filteredData.length;
         const tuition = filteredData.reduce((s, d) => s + d.totalTuitionFee, 0);
         const payable = filteredData.reduce((s, d) => s + d.amountPayable, 0);
         return { students, tuition, payable };
     }, [filteredData]);
+
+    const visibleData = filteredData;
 
     const classData = useMemo(() => {
         const map: Record<string, number> = {};
@@ -246,36 +258,6 @@ export default function ScholarshipPage() {
             .sort((a, b) => b.value - a.value)
             .slice(0, 8);
     }, [filteredData]);
-
-    // ─── Animated loading ─────────────────────────────────────────────
-
-    useEffect(() => {
-        if (loading) return;
-        const total = filteredData.length;
-        if (total === 0) {
-            setVisibleData([]);
-            setAnimatedTotal({ students: 0, tuition: 0, payable: 0 });
-            return;
-        }
-        let index = 0;
-        const step = Math.max(1, Math.floor(total / 15));
-        const interval = setInterval(() => {
-            index = Math.min(index + step, total);
-            const slice = filteredData.slice(0, index);
-            setVisibleData(slice);
-            const s = slice.reduce(
-                (acc, d) => ({
-                    students: acc.students + 1,
-                    tuition: acc.tuition + d.totalTuitionFee,
-                    payable: acc.payable + d.amountPayable,
-                }),
-                { students: 0, tuition: 0, payable: 0 }
-            );
-            setAnimatedTotal(s);
-            if (index >= total) clearInterval(interval);
-        }, 60);
-        return () => clearInterval(interval);
-    }, [filteredData, loading]);
 
     // ─── Navigation ────────────────────────────────────────────────────
 
@@ -447,7 +429,7 @@ export default function ScholarshipPage() {
                                 <tr className="bg-gradient-to-r from-[#A41814] to-indigo-50 border-b border-gray-200">
                                     <th className="p-3 text-left text-sm font-semibold text-gray-600">#</th>
                                     <th className="p-3 text-left text-sm font-semibold text-gray-600">Student Name</th>
-                                    <th className="p-3 text-left text-sm font-semibold text-gray-600">Father's Name</th>
+                                    <th className="p-3 text-left text-sm font-semibold text-gray-600">Father&apos;s Name</th>
                                     <th className="p-3 text-left text-sm font-semibold text-gray-600">Class</th>
                                     <th className="p-3 text-left text-sm font-semibold text-gray-600">College</th>
                                     <th className="p-3 text-left text-sm font-semibold text-gray-600">Village</th>
