@@ -63,7 +63,7 @@ export default function AdminTeachersPage() {
   }
 
   useEffect(() => {
-    void loadTeachers();
+    void Promise.resolve().then(loadTeachers);
   }, []);
 
   async function submitForm(event: React.FormEvent) {

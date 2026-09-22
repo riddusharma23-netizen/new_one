@@ -55,6 +55,12 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error(error);
+    if (error instanceof Error && /DB_HOST|DB_USER|DB_NAME|AUTH_SECRET/.test(error.message)) {
+      return fail("Server configuration is incomplete. Check the environment variables and restart the server.", 503);
+    }
+    if (error && typeof error === "object" && "code" in error) {
+      return fail("The database is unavailable. Start MySQL and verify the database settings.", 503);
+    }
     return fail("Unable to sign in. Please try again.", 500);
   }
 }

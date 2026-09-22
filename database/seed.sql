@@ -7,7 +7,7 @@ INSERT INTO admins (name, email, password_hash, role, status)
 VALUES (
   'School Administrator',
   'admin@champidevi.local',
-  'scrypt$16384$8$1$2a3749184e99858babd84342640fd63c$32c80d5c68c1e8ca3d5aee0fd24e58b18ac023e0920859e3a7d38f84bfebbb7bf5a2cf58fdcc3e92f356185ee46f90424d789d5e87d7472be27b6428fb3e1df5',
+  '$2b$12$yUwwkGakxfbB0inx2wc4.O9kASB.8PTGN8jZ13W8jY52Fc/u3dZWK',
   'ADMIN',
   'ACTIVE'
 );

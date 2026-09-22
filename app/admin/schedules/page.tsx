@@ -69,7 +69,7 @@ export default function AdminSchedulesPage() {
   }
 
   useEffect(() => {
-    void loadData();
+    void Promise.resolve().then(loadData);
   }, []);
 
   async function submitForm(event: React.FormEvent) {

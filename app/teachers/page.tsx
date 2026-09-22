@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -187,6 +187,42 @@ const supportStaff = [
 
 
 export default function Teachers() {
+  const [databaseTeachers, setDatabaseTeachers] = useState(teachers);
+
+  useEffect(() => {
+    void fetch("/api/teachers")
+      .then(async (response) => {
+        if (!response.ok) return;
+        const payload = (await response.json()) as {
+          success?: boolean;
+          data?: Array<{
+            id: number;
+            name: string;
+            designation: string;
+            qualification: string | null;
+            experience: string | null;
+            email: string | null;
+            image: string | null;
+          }>;
+        };
+        if (!payload.success || !payload.data?.length) return;
+        setDatabaseTeachers(payload.data.map((teacher) => ({
+          id: teacher.id,
+          name: teacher.name,
+          role: teacher.designation,
+          image: teacher.image || "/teachers/SCHOOL.jpg",
+          experience: teacher.experience || "",
+          students: "100+",
+          projects: "120+",
+          rating: "4.9",
+          skills: [],
+          email: teacher.email || "",
+          degree: teacher.qualification || "",
+        })));
+      })
+      .catch(() => undefined);
+  }, []);
+
   return (
     <main className=" overflow-hidden">
 
@@ -1132,7 +1168,7 @@ gap-7
 "
 >
 
-{teachers.map((teacher) => (
+{databaseTeachers.map((teacher) => (
   <div
     key={teacher.id}
     className="
