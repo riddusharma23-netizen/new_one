@@ -39,6 +39,8 @@ export default function AdminSchedulesPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [importMessage, setImportMessage] = useState("");
+  const [importing, setImporting] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -111,6 +113,39 @@ export default function AdminSchedulesPage() {
     await loadData();
   }
 
+  async function importFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setImporting(true);
+    setError("");
+    setImportMessage("");
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const response = await fetch("/api/admin/schedules/import", { method: "POST", body });
+      const payload = (await response.json()) as ApiResponse<{ imported: number; failed: number; failures: Array<{ row: number; message: string }> }>;
+      if (!response.ok || payload.success === false) throw new Error(payload.message);
+      const failures = payload.data?.failures ?? [];
+      setImportMessage(`${payload.data?.imported ?? 0} row(s) imported${failures.length ? `, ${failures.length} skipped` : ""}. ${failures.slice(0, 3).map((item) => `Row ${item.row}: ${item.message}`).join(" | ")}`);
+      await loadData();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Unable to import schedule file");
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  function downloadTemplate() {
+    const content = "teacher,class,section,subject,day,period,room,academic_year,start_time,end_time,status\nBhagwati Prasad,1,A,English,Monday,1,101,2025-26,08:00:00,08:45:00,ACTIVE\n";
+    const url = URL.createObjectURL(new Blob([content], { type: "text/csv;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "schedule-template.csv";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
   function editItem(row: Schedule) {
     setEditingId(row.id);
     setForm({
@@ -129,18 +164,25 @@ export default function AdminSchedulesPage() {
       <div className="mx-auto max-w-7xl space-y-6">
         <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
           <h1 className="mb-4 text-2xl font-black text-slate-900">Schedule Management</h1>
+          <div className="mb-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div><h2 className="font-bold text-slate-900">Bulk schedule import</h2><p className="text-xs text-slate-500">Upload .xlsx, .xls, or .csv. Use teacher/class/section/subject names or IDs.</p></div>
+              <div className="flex flex-wrap gap-2"><button type="button" onClick={downloadTemplate} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700">Download template</button><label className="cursor-pointer rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-white">{importing ? "Importing..." : "Upload Excel"}<input type="file" accept=".xlsx,.xls,.csv" onChange={(event) => void importFile(event)} disabled={importing} className="hidden" /></label></div>
+            </div>
+            {importMessage ? <p className="mt-3 text-sm text-green-700">{importMessage}</p> : null}
+          </div>
           <form onSubmit={submitForm} className="grid gap-4 md:grid-cols-3">
             <select value={form.teacher_id} onChange={(e) => setForm({ ...form, teacher_id: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2" required>
               <option value="">Select teacher</option>
               {teachers.map((teacher) => <option key={teacher.id} value={teacher.id}>{teacher.name}</option>)}
             </select>
-            <select value={form.class_id} onChange={(e) => setForm({ ...form, class_id: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2" required>
+            <select value={form.class_id} onChange={(e) => setForm({ ...form, class_id: e.target.value, subject_id: "" })} className="rounded-xl border border-slate-300 px-3 py-2" required>
               <option value="">Select class</option>
               {classes.map((row) => <option key={row.id} value={row.id}>{row.class_name}-{row.section}</option>)}
             </select>
             <select value={form.subject_id} onChange={(e) => setForm({ ...form, subject_id: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2" required>
               <option value="">Select subject</option>
-              {subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.subject_name}</option>)}
+              {subjects.filter((subject) => !form.class_id || subject.class_id === Number(form.class_id)).map((subject) => <option key={subject.id} value={subject.id}>{subject.subject_name}</option>)}
             </select>
             <select value={form.day_of_week} onChange={(e) => setForm({ ...form, day_of_week: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2">
               {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((day) => <option key={day} value={day}>{day}</option>)}

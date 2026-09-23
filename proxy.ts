@@ -32,7 +32,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname);
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {

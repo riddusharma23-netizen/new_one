@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   CalendarDays,
@@ -155,12 +155,59 @@ const campusImages = [
   "/gallery/campus-8.jpg",
 ];
 
+type GalleryRecord = {
+  id: number;
+  title: string;
+  image: string;
+  category: string;
+  event_name: string | null;
+};
+
 // -----------------------------------------------------
 // PAGE
 // -----------------------------------------------------
 
 export default function GalleryPage() {
   const [activeImage, setActiveImage] = useState<string | null>(null);
+  const [culturalGallery, setCulturalGallery] = useState(culturalEvents);
+  const [sportsGallery, setSportsGallery] = useState(sportsEvents);
+  const [schoolGallery, setSchoolGallery] = useState(schoolEvents);
+  const [campusGallery, setCampusGallery] = useState(campusImages);
+  const [customGalleries, setCustomGalleries] = useState<Array<{ category: string; items: GalleryRecord[] }>>([]);
+
+  useEffect(() => {
+    void fetch("/api/gallery")
+      .then(async (response) => {
+        if (!response.ok) return;
+        const payload = (await response.json()) as { success?: boolean; data?: GalleryRecord[] };
+        if (!payload.success || !payload.data?.length) return;
+
+        const records = payload.data;
+        const toEvent = (record: GalleryRecord) => ({
+          image: record.image,
+          title: record.title,
+          category: record.category,
+          date: record.event_name || "School memories",
+        });
+        const cultural = records.filter((record) => record.category.toLowerCase().includes("cultural"));
+        const sports = records.filter((record) => record.category.toLowerCase().includes("sport"));
+        const campus = records.filter((record) => record.category.toLowerCase().includes("campus"));
+        const school = records.filter((record) => !cultural.includes(record) && !sports.includes(record) && !campus.includes(record));
+        const grouped = new Map<string, GalleryRecord[]>();
+        for (const record of school) {
+          const list = grouped.get(record.category) ?? [];
+          list.push(record);
+          grouped.set(record.category, list);
+        }
+
+        if (cultural.length) setCulturalGallery(cultural.map(toEvent));
+        if (sports.length) setSportsGallery(sports.map((record) => ({ image: record.image, title: record.title, category: record.category })));
+        if (school.length) setSchoolGallery(school.map((record) => ({ image: record.image, title: record.title, category: record.category })));
+        if (campus.length) setCampusGallery(campus.map((record) => record.image));
+        setCustomGalleries([...grouped.entries()].map(([category, items]) => ({ category, items })));
+      })
+      .catch(() => undefined);
+  }, []);
 
   return (
     <main className="overflow-hidden bg-white">
@@ -247,6 +294,30 @@ export default function GalleryPage() {
         </div>
       </section>
 
+      {customGalleries.map((group) => (
+        <section key={group.category} className="relative bg-white py-20">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <SectionHeading
+              eyebrow="Gallery category"
+              title={group.category}
+              description={`Memories and moments from ${group.category}.`}
+              icon={<Camera className="h-5 w-5" />}
+            />
+            <div className="mt-12 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+              {group.items.map((item) => (
+                <article key={item.id} onClick={() => setActiveImage(item.image)} className="group cursor-pointer overflow-hidden rounded-[26px] bg-white shadow-[0_12px_40px_rgba(182,15,23,0.1)]">
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <Image src={item.image} alt={item.title} fill className="object-cover transition duration-700 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
+                    <div className="absolute bottom-5 left-5"><span className="rounded-full bg-[#F8F400] px-3 py-1 text-xs font-semibold text-[#B60F17]">{item.category}</span><h3 className="mt-2 text-xl font-bold text-white">{item.title}</h3></div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ))}
+
       {/* =================================================
           CULTURAL EVENTS — Fixed slider with navigation
       ================================================= */}
@@ -283,7 +354,7 @@ export default function GalleryPage() {
               }}
               className="pb-14"
             >
-              {culturalEvents.map((event) => (
+              {culturalGallery.map((event) => (
                 <SwiperSlide key={event.title}>
                   <GalleryCard
                     image={event.image}
@@ -349,7 +420,7 @@ export default function GalleryPage() {
               }}
               className="pb-14"
             >
-              {sportsEvents.map((event) => (
+              {sportsGallery.map((event) => (
                 <SwiperSlide key={event.title}>
                   <div
                     className="group relative overflow-hidden rounded-[30px] bg-[#B60F17] shadow-[0_25px_60px_rgba(182,15,23,0.18)] cursor-pointer"
@@ -401,7 +472,7 @@ export default function GalleryPage() {
           />
 
           <div className="mt-14 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
-            {schoolEvents.map((event) => (
+            {schoolGallery.map((event) => (
               <article
                 key={event.title}
                 onClick={() => setActiveImage(event.image)}
@@ -443,7 +514,7 @@ export default function GalleryPage() {
           />
 
           <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-4">
-            {campusImages.map((image, index) => (
+            {campusGallery.map((image, index) => (
               <div
                 key={image}
                 onClick={() => setActiveImage(image)}

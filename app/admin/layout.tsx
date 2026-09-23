@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
+import AdminChrome from "./AdminChrome";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  return <div className="min-h-screen bg-slate-100 text-slate-900">{children}</div>;
+  return <AdminChrome>{children}</AdminChrome>;
 }

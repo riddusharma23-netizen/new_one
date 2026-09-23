@@ -2,8 +2,25 @@ import Link from "next/link";
 import Image from "next/image";
 import { departments } from "./data/department";
 import { ArrowRight } from "lucide-react";
+import { query } from "@/lib/db";
 
-export default function DepartmentPage() {
+type DepartmentRow = { id: number; name: string; slug: string; description: string | null; hero_image: string | null; color: string | null; extra_json: string | null };
+
+async function getDepartments() {
+  try {
+    const rows = await query<DepartmentRow>("SELECT id, name, slug, description, hero_image, color, extra_json FROM departments WHERE status = 'ACTIVE' ORDER BY display_order ASC, id ASC");
+    if (!rows.length) return departments;
+    return rows.map((row) => {
+      let extra: Record<string, unknown> = {};
+      try { extra = row.extra_json ? JSON.parse(row.extra_json) as Record<string, unknown> : {}; } catch { extra = {}; }
+      const fallback = departments.find((item) => item.slug === row.slug);
+      return { ...(fallback ?? departments[0]), id: row.id, slug: row.slug, title: row.name, description: row.description ?? "", banner: row.hero_image ?? fallback?.banner ?? departments[0].banner, color: row.color ?? fallback?.color ?? "#B60F17", facilities: Array.isArray(extra.facilities) ? extra.facilities as string[] : fallback?.facilities ?? [], gallery: Array.isArray(extra.gallery) ? extra.gallery as string[] : fallback?.gallery ?? [], faculty: Array.isArray(extra.faculty) ? extra.faculty : fallback?.faculty ?? [], stats: Array.isArray(extra.stats) ? extra.stats : fallback?.stats ?? [], achievements: Array.isArray(extra.achievements) ? extra.achievements as string[] : fallback?.achievements ?? [] };
+    });
+  } catch { return departments; }
+}
+
+export default async function DepartmentPage() {
+  const departmentItems = await getDepartments();
   return (
     <main className="bg-slate-50">
 
@@ -38,7 +55,7 @@ export default function DepartmentPage() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
 
-            {departments.map((department) => {
+            {departmentItems.map((department) => {
               const Icon = department.icon;
 
               return (

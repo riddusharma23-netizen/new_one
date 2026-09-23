@@ -43,6 +43,7 @@ export default function AdminTeachersPage() {
   const [items, setItems] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -93,6 +94,28 @@ export default function AdminTeachersPage() {
     await loadTeachers();
   }
 
+  async function handleImageSelect(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setUploadingImage(true);
+    setError("");
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const response = await fetch("/api/admin/uploads", { method: "POST", body });
+      const payload = (await response.json()) as ApiResponse<{ url: string }>;
+      if (!response.ok || payload.success === false || !payload.data?.url) {
+        throw new Error(payload.message || "Unable to upload image");
+      }
+      setForm((current) => ({ ...current, image: payload.data?.url ?? "" }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to upload image");
+    } finally {
+      setUploadingImage(false);
+    }
+  }
+
   async function handleDelete(id: number) {
     if (!window.confirm("Delete this teacher?")) return;
     const response = await fetch(`/api/admin/teachers/${id}`, { method: "DELETE" });
@@ -139,7 +162,14 @@ export default function AdminTeachersPage() {
             <input value={form.experience} onChange={(e) => setForm({ ...form, experience: e.target.value })} placeholder="Experience" className="rounded-xl border border-slate-300 px-3 py-2" />
             <input value={form.email} type="email" onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" className="rounded-xl border border-slate-300 px-3 py-2" />
             <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" className="rounded-xl border border-slate-300 px-3 py-2" />
-            <input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} placeholder="Image path" className="rounded-xl border border-slate-300 px-3 py-2 md:col-span-2" />
+            <div className="grid gap-2 md:col-span-2 md:grid-cols-[1fr_auto]">
+              <input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} placeholder="Image path or choose a file" className="rounded-xl border border-slate-300 px-3 py-2" />
+              <label className="cursor-pointer rounded-xl bg-slate-800 px-4 py-2 text-center font-semibold text-white hover:bg-slate-700">
+                {uploadingImage ? "Uploading..." : "Choose image"}
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => void handleImageSelect(event)} disabled={uploadingImage} className="hidden" />
+              </label>
+              {form.image ? <img src={form.image} alt="Selected faculty" className="h-24 w-24 rounded-xl object-cover ring-1 ring-slate-200" /> : null}
+            </div>
             <textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Bio" className="min-h-24 rounded-xl border border-slate-300 px-3 py-2 md:col-span-2" />
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as "ACTIVE" | "INACTIVE" })} className="rounded-xl border border-slate-300 px-3 py-2">
               <option value="ACTIVE">Active</option>
