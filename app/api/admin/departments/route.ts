@@ -10,6 +10,8 @@ function extraJson(body: Record<string, unknown>) {
     facilities: parseJsonArray(body.facilities),
     gallery: parseJsonArray(body.gallery),
     achievements: parseJsonArray(body.achievements),
+    faculty: parseJsonArray(body.faculty),
+    stats: parseJsonArray(body.stats),
   });
 }
 

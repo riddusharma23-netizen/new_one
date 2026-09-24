@@ -1,7 +1,8 @@
 import { createHmac, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
-import { query, queryOne, execute } from "@/lib/db";
+import { queryOne, execute } from "@/lib/db";
 
 function scryptAsync(password: string, salt: Buffer, keyLength: number, options: { N: number; r: number; p: number }) {
   return new Promise<Buffer>((resolve, reject) => {
@@ -51,6 +52,10 @@ export async function hashPassword(password: string) {
 }
 
 export async function verifyPassword(password: string, stored: string) {
+  if (stored.startsWith("$2a$") || stored.startsWith("$2b$") || stored.startsWith("$2y$")) {
+    return bcrypt.compare(password, stored);
+  }
+
   const parts = stored.split("$");
   if (parts.length !== 6 || parts[0] !== "scrypt") return false;
 

@@ -50,12 +50,6 @@ export default function AdminDashboardPage() {
     loadDashboard();
   }, [router]);
 
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/admin/login");
-    router.refresh();
-  }
-
   if (loading) {
     return <div className="flex min-h-screen items-center justify-center text-lg font-semibold text-slate-700">Loading dashboard...</div>;
   }
@@ -85,11 +79,7 @@ export default function AdminDashboardPage() {
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#B60F17]">Admin Panel</p>
             <h1 className="mt-2 text-3xl font-black text-slate-900">Dashboard</h1>
           </div>
-          <div className="flex gap-3">
-            <button className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 font-semibold text-slate-700" onClick={() => router.push("/admin/teachers")}>Teachers</button>
-            <button className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 font-semibold text-slate-700" onClick={() => router.push("/admin/schedules")}>Schedules</button>
-            <button className="rounded-xl bg-[#B60F17] px-4 py-2 font-semibold text-white" onClick={handleLogout}>Logout</button>
-          </div>
+          <p className="text-sm font-semibold text-slate-500">Manage school content from the sidebar.</p>
         </header>
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

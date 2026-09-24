@@ -46,7 +46,7 @@ export default function AdminClassesPage() {
   }
 
   useEffect(() => {
-    void loadClasses();
+    void Promise.resolve().then(loadClasses);
   }, []);
 
   async function submitForm(event: React.FormEvent) {

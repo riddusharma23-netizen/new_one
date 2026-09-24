@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -115,78 +115,77 @@ const teachers = Array.from({ length: 13 }, (_, i) => ({
 }));
 
 
-// our support staff array details****************************
-const supportStaff = [
-  {
-    id: 1,
-    name: "Dr. Pavan Kumar Ravat",
-    role: "M.D. (Medicine)",
-    image: "/staff/s.jpg",
- 
-    phone: "91-9997948930 ",
-   
-    department: "Medical Department",
-  },
-
-  {
-    id: 2,
-    name: "Devdutt Sharma",
-    role: "Compounder",
-    image: "/staff/s2.jpg",
-    
-    phone: "+91-9410882205",
-    
-    department: "Pharmacist",
-  },
-
-  {
-    id: 3,
-    name: "Rajesh Kaushik ",
-    role: "Peon",
-    image: "/staff/s3.jpg",
- 
-    phone: "+91 9756578303",
-    
-    // department: "Security",
-  },
-
-  // {
-  //   id: 4,
-  //   name: "Ramesh",
-  //   role: "Peon",
-  //   image: "/staff/s4.jpg",
- 
-  //   phone: "+91 9876543210",
-   
-  //   department: "Support Staff",
-  // },
-
-  // {
-  //   id: 5,
-  //   name: "Mohan",
-  //   role: "Driver",
-  //   image: "/staff/s5.jpg",
-   
-  //   phone: "+91 9876543210",
- 
-  //   department: "Transport",
-  // },
-
-  {
-    id: 6,
-    name: "Ravi",
-    role: "Gardener",
-    image: "/staff/s6.jpg",
- 
-    phone: "+91 9876543210",
- 
-    department: "Maintenance",
-  },
-];
-
-
-
 export default function Teachers() {
+  const [databaseTeachers, setDatabaseTeachers] = useState(teachers);
+  const [supportStaff, setSupportStaff] = useState<Array<{
+    id: number;
+    name: string;
+    role: string;
+    image: string;
+    phone: string;
+    department: string;
+  }>>([]);
+
+  useEffect(() => {
+    void fetch("/api/teachers")
+      .then(async (response) => {
+        if (!response.ok) return;
+        const payload = (await response.json()) as {
+          success?: boolean;
+          data?: Array<{
+            id: number;
+            name: string;
+            designation: string;
+            qualification: string | null;
+            experience: string | null;
+            email: string | null;
+            image: string | null;
+          }>;
+        };
+        if (!payload.success || !payload.data?.length) return;
+        setDatabaseTeachers(payload.data.map((teacher) => ({
+          id: teacher.id,
+          name: teacher.name,
+          role: teacher.designation,
+          image: teacher.image || "/teachers/SCHOOL.jpg",
+          experience: teacher.experience || "",
+          students: "100+",
+          projects: "120+",
+          rating: "4.9",
+          skills: [],
+          email: teacher.email || "",
+          degree: teacher.qualification || "",
+        })));
+      })
+      .catch(() => undefined);
+
+    void fetch("/api/teachers?staff_type=SUPPORT")
+      .then(async (response) => {
+        if (!response.ok) return;
+        const payload = (await response.json()) as {
+          success?: boolean;
+          data?: Array<{
+            id: number;
+            name: string;
+            designation: string;
+            department: string | null;
+            phone: string | null;
+            image: string | null;
+          }>;
+        };
+        if (!payload.success || !payload.data) return;
+        setSupportStaff(payload.data.map((staff) => ({
+          id: staff.id,
+          name: staff.name,
+          role: staff.designation,
+          image: staff.image || "/teachers/SCHOOL.jpg",
+          phone: staff.phone || "",
+          department: staff.department || "",
+        })));
+      })
+      .catch(() => undefined);
+  }, []);
+
   return (
     <main className=" overflow-hidden">
 
@@ -1132,7 +1131,7 @@ gap-7
 "
 >
 
-{teachers.map((teacher) => (
+{databaseTeachers.map((teacher) => (
   <div
     key={teacher.id}
     className="
@@ -1300,7 +1299,7 @@ Medical & Support Staff Layout
     mt-14
   "
 >
-  {supportStaff.map((staff) => (
+  {supportStaff.length === 0 ? <p className="col-span-full text-center text-gray-600">Support staff details will be updated soon.</p> : supportStaff.map((staff) => (
     <div
       key={staff.id}
       className="

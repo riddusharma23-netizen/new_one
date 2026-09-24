@@ -6,39 +6,38 @@ The public website for Smt. Champi Devi Inter College, built with Next.js.
 
 ```bash
 npm.cmd install
+copy .env.example .env
 npm.cmd run dev
 ```
 
 Open `http://localhost:3000`.
 
-## Production deployment
+## MySQL setup
 
-This project is configured as a static export. Build the deployable site with:
+1. Install MySQL 8 or newer.
+2. Create the schema and development data:
 
 ```bash
+mysql -u root -p < database/schema.sql
+mysql -u root -p champidevi < database/seed.sql
+```
+
+3. Set `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and `AUTH_SECRET` in `.env`.
+4. Change the development admin password before production use. The seed login is `admin@champidevi.local` / `Admin@12345`.
+
+## Production deployment
+
+This is a server-rendered Next.js application because its API routes and MySQL connection must run on a Node.js host. Do not deploy it as a static export.
+
+```bash
+npm.cmd run lint
 npm.cmd run build
+npm.cmd run start
 ```
 
-Upload the contents of the generated `out/` directory to any static web server, hosting panel, CDN, or object storage bucket. Do not upload the project root or `node_modules`.
+The application serves the admin panel at `/admin/login`. Admin APIs are protected by the signed `cdic_session` cookie; public APIs only return active or published content.
 
-### Apache deployment
-
-Upload the contents inside `out/` directly into the Apache virtual host's `DocumentRoot` (for example, `/var/www/html/`), so the server contains `/var/www/html/index.html`. Do not upload the `out` directory itself as a nested folder unless the site's `DocumentRoot` points to that directory.
-
-The export includes `index.html` at the root and `index.html` inside each route directory. `public/.htaccess` is copied into `out/.htaccess` during the build and handles directory indexes, route redirects, and the generated 404 page. Apache must allow overrides for the document root:
-
-```apache
-<Directory "/var/www/html">
-	AllowOverride FileInfo Indexes Options
-	Require all granted
-</Directory>
-```
-
-After changing the Apache virtual host configuration, reload Apache and ensure the files are readable by the web-server user. If `.htaccess` is not permitted by the host, configure `DirectoryIndex index.html`, `Options -Indexes`, and equivalent rewrite rules in the virtual host instead. The homepage itself does not need a redirect or fallback file: `/index.html` is the direct root document.
-
-For a Node.js host instead, remove `output: "export"` from `next.config.ts`, then deploy with `npm run build` followed by `npm run start`.
-
-## Pre-deployment check
+## Verification
 
 ```bash
 npm.cmd run lint

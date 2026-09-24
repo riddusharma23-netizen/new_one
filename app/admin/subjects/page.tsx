@@ -47,7 +47,7 @@ export default function AdminSubjectsPage() {
   }
 
   useEffect(() => {
-    void loadSubjects();
+    void Promise.resolve().then(loadSubjects);
   }, []);
 
   async function submitForm(event: React.FormEvent) {

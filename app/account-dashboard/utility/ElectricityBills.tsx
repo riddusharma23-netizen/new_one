@@ -1,10 +1,11 @@
 import React from 'react'
 
-export default function 
-() {
+function ElectricityBills() {
   return (
     <div>
       
     </div>
   )
 }
+
+export default ElectricityBills
