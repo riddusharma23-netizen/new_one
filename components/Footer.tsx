@@ -321,31 +321,17 @@ function FooterLinks({
 
       <Title title={title} />
 
-      <div className="mt-10 space-y-3">
+      <div className="mt-10 space-y-1">
 
         {links.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className="
-            flex
-            items-center
-            gap-3
-
-            text-sm
-            sm:text-base
-            md:text-lg
-
-            hover:text-[#F8F000]
-
-
-            duration-300
+          flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-semibold transition hover:bg-white/15 hover:text-[#fff3a6]
             "
           >
-            <ChevronRight
-              size={18}
-              color="#F8F400"
-            />
+          <span className="h-2 w-2 shrink-0 rounded-full bg-[#f8f000]" />
 
             {item.label}
           </Link>
@@ -369,7 +355,7 @@ function StudentResources() {
   return (
     <div className="rounded-2xl  p-5 backdrop-blur-sm">
       <Title title="Student Corner" />
-      <div className="mt-6 space-y-2">
+      <div className="mt-6 space-y-1">
         {links.map((link) => (
           <Link
             key={link.href}

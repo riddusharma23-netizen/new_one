@@ -198,7 +198,7 @@ function SchoolBanner() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
         <div className="absolute bottom-4 left-4 sm:left-8">
           <p className="text-white font-black text-lg sm:text-3xl tracking-tight">
-            Smt. Champi Devi Inter College
+            SMT. Champi Devi Inter College
           </p>
           <p className="text-[11px] sm:text-sm font-semibold tracking-wide text-white/85 mt-1">
             Jamon, Aligarh · Uttar Pradesh
@@ -243,7 +243,7 @@ function Hero() {
 
             <p className="mt-6 text-base sm:text-lg leading-8 text-gray-700 max-w-xl mx-auto lg:mx-0">
               Congratulations to all our brilliant students for their outstanding
-              performance. <span className="font-semibold text-[#B60F17]">Smt. Champi Devi Inter College</span> is proud of you!
+              performance. <span className="font-semibold text-[#B60F17]">SMT. Champi Devi Inter College</span> is proud of you!
             </p>
 
             <div className="mt-9 flex flex-wrap justify-center lg:justify-start gap-4">
@@ -322,7 +322,7 @@ interface ClassToggleProps {
 
 function ClassToggle({ selectedClass, setSelectedClass }: ClassToggleProps) {
   const classes = [
-    { id: "8", label: "Class 8th", sub: "Basic Shiksha" },
+    // { id: "8", label: "Class 8th", sub: "Basic Shiksha" },
     { id: "10", label: "Class 10th", sub: "High School" },
     { id: "12", label: "Class 12th", sub: "Intermediate" },
   ];
