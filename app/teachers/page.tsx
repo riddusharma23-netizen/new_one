@@ -65,7 +65,7 @@ const teachers = Array.from({ length: 13 }, (_, i) => ({
     "/teachers/vikram-babu.jpeg",
     "/teachers/shivam-varshney.jpeg",
     "/teachers/anilkumar-Kaushik.jpeg",
-    "/teachers/dharmvir-sharma.jpeg",
+    "/teachers/SCHOOL.jpg",
     "/teachers/hemalata-garg.jpeg",
   ][i],
 

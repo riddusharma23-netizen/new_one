@@ -30,7 +30,7 @@ VALUES
   ('Vikram Babu', 'Lecturer - Hindi', 'Languages', 'Hindi', 'M.A., B.Ed.', '9+ Years', 'vikrambabu101271@gmail.com', NULL, '/teachers/vikram-babu.jpeg', NULL, 'TEACHER', 'ACTIVE', 9),
   ('Shivam Varshney', 'Lecturer - Biology', 'Science', 'Biology', 'M.Sc. (Biology), B.Ed.', '6+ Years', 'mth.shivam20@gmail.com', NULL, '/teachers/shivam-varshney.jpeg', NULL, 'TEACHER', 'ACTIVE', 10),
   ('Anil Kumar Kaushik', 'Lecturer - Physics', 'Science', 'Science', 'M.Sc. (Physics)', '5+ Years', 'pt.akkaushik1997@gmail.com', NULL, '/teachers/anilkumar-Kaushik.jpeg', NULL, 'TEACHER', 'ACTIVE', 11),
-  ('Dharmvir Sharma', 'Assistant Teacher - Science', 'Science', 'Mathematics', 'B.Sc., B.Ed.', '6+ Years', 'dharmvirsharma15@gmail.com', NULL, '/teachers/dharmvir-sharma.jpeg', NULL, 'TEACHER', 'ACTIVE', 12),
+  ('Dharmvir Sharma', 'Assistant Teacher - Science', 'Science', 'Mathematics', 'B.Sc., B.Ed.', '6+ Years', 'dharmvirsharma15@gmail.com', NULL, '/teachers/SCHOOL.jpg', NULL, 'TEACHER', 'ACTIVE', 12),
   ('Hemalata Garg', 'Assistant Teacher - Science', 'Science', 'Science', 'B.Sc.', '4+ Years', 'neerajkaushik734@gmail.com', NULL, '/teachers/hemalata-garg.jpeg', NULL, 'TEACHER', 'ACTIVE', 13);
 
 INSERT INTO classes (class_name, section, academic_year, class_teacher_id, room, status) VALUES
@@ -171,3 +171,6 @@ INSERT INTO result_subjects (result_id, subject, max_marks, obtain_marks, grade)
 
 INSERT INTO activity_logs (admin_id, action, entity, entity_id, message) VALUES
   (1, 'SEED', 'system', NULL, 'Development database seeded');
+
+
+  

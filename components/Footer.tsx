@@ -125,7 +125,7 @@ to-[#FF6A00]
                 {
                   icon: MapPin,
                   text:
-                    "Jamo Aligar",
+                    "Jamon Aligarh",
                 },
                 {
                   icon: Mail,
@@ -367,7 +367,7 @@ function StudentResources() {
   ];
 
   return (
-    <div className="rounded-2xl border border-white/20 bg-black/10 p-5 backdrop-blur-sm">
+    <div className="rounded-2xl  p-5 backdrop-blur-sm">
       <Title title="Student Corner" />
       <div className="mt-6 space-y-2">
         {links.map((link) => (
