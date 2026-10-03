@@ -104,6 +104,63 @@ CREATE TABLE subjects (
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE academic_years (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(20) NOT NULL,
+  start_date DATE NULL,
+  end_date DATE NULL,
+  status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_academic_year_name (name),
+  KEY idx_academic_years_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE groups (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(120) NOT NULL,
+  class_id INT UNSIGNED NOT NULL,
+  description TEXT NULL,
+  active ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_groups_class (class_id),
+  CONSTRAINT fk_groups_class
+    FOREIGN KEY (class_id) REFERENCES classes (id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE rooms (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(80) NOT NULL,
+  room_type VARCHAR(40) NOT NULL DEFAULT 'CLASSROOM',
+  active ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_rooms_name (name),
+  KEY idx_rooms_active (active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE time_slots (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  label VARCHAR(120) NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  slot_order INT UNSIGNED NOT NULL DEFAULT 1,
+  slot_type ENUM('REGULAR','BREAK','LUNCH','ASSEMBLY','OTHER') NOT NULL DEFAULT 'REGULAR',
+  is_break TINYINT(1) NOT NULL DEFAULT 0,
+  is_lunch TINYINT(1) NOT NULL DEFAULT 0,
+  active ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_time_slots_order (slot_order),
+  KEY idx_time_slots_status (active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE schedules (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   teacher_id INT UNSIGNED NOT NULL,
@@ -132,6 +189,53 @@ CREATE TABLE schedules (
   CONSTRAINT fk_schedules_subject
     FOREIGN KEY (subject_id) REFERENCES subjects (id)
     ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE schedule_entries (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  academic_year_id INT UNSIGNED NULL,
+  class_id INT UNSIGNED NULL,
+  group_id INT UNSIGNED NULL,
+  subject_id INT UNSIGNED NULL,
+  teacher_id INT UNSIGNED NULL,
+  room_id INT UNSIGNED NULL,
+  time_slot_id INT UNSIGNED NULL,
+  day_of_week ENUM('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday') NULL,
+  entry_type ENUM('SUBJECT','BREAK','LUNCH','ACTIVITY','ASSEMBLY','FREE','OTHER') NOT NULL DEFAULT 'SUBJECT',
+  start_slot_id INT UNSIGNED NULL,
+  end_slot_id INT UNSIGNED NULL,
+  display_label VARCHAR(160) NULL,
+  notes TEXT NULL,
+  color_override VARCHAR(20) NULL,
+  status ENUM('DRAFT','PUBLISHED','ARCHIVED') NOT NULL DEFAULT 'DRAFT',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_schedule_entries_year (academic_year_id),
+  KEY idx_schedule_entries_class_time (class_id, day_of_week, time_slot_id),
+  KEY idx_schedule_entries_teacher_time (teacher_id, day_of_week, time_slot_id),
+  KEY idx_schedule_entries_room_time (room_id, day_of_week, time_slot_id),
+  CONSTRAINT fk_schedule_entries_academic_year
+    FOREIGN KEY (academic_year_id) REFERENCES academic_years (id)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT fk_schedule_entries_class
+    FOREIGN KEY (class_id) REFERENCES classes (id)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT fk_schedule_entries_group
+    FOREIGN KEY (group_id) REFERENCES groups (id)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT fk_schedule_entries_subject
+    FOREIGN KEY (subject_id) REFERENCES subjects (id)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT fk_schedule_entries_teacher
+    FOREIGN KEY (teacher_id) REFERENCES teachers (id)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT fk_schedule_entries_room
+    FOREIGN KEY (room_id) REFERENCES rooms (id)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT fk_schedule_entries_time_slot
+    FOREIGN KEY (time_slot_id) REFERENCES time_slots (id)
+    ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE gallery (

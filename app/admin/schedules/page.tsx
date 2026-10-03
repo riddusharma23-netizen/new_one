@@ -1,241 +1,239 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-type Schedule = {
-  id: number;
-  teacher_id: number;
-  class_id: number;
-  subject_id: number;
-  day_of_week: string;
-  period_number: number;
-  room: string | null;
-  academic_year: string;
-  teacher_name?: string;
-  subject_name?: string;
-  class_label?: string;
-};
-
-type Teacher = { id: number; name: string };
-type ClassRow = { id: number; class_name: string; section: string; academic_year: string };
-type Subject = { id: number; subject_name: string; class_id: number };
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import type { MasterScheduleData } from "@/lib/schedule-master";
 
 type ApiResponse<T> = { success: boolean; message: string; data?: T };
 
-const emptyForm = {
-  teacher_id: "",
-  class_id: "",
-  subject_id: "",
-  day_of_week: "Monday",
-  period_number: "1",
-  room: "",
-  academic_year: "2025-26",
+type ValidationState = { valid: boolean; issues: Array<{ code: string; message: string; scheduleId?: number }> };
+type EntryForm = {
+  id?: number;
+  class_id: string;
+  subject_id: string;
+  teacher_id: string;
+  day_of_week: string;
+  period_number: string;
+  room: string;
 };
 
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
+const EMPTY_FORM: EntryForm = { class_id: "", subject_id: "", teacher_id: "", day_of_week: "Monday", period_number: "1", room: "" };
+
 export default function AdminSchedulesPage() {
-  const [items, setItems] = useState<Schedule[]>([]);
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [classes, setClasses] = useState<ClassRow[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [data, setData] = useState<MasterScheduleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [importMessage, setImportMessage] = useState("");
-  const [importing, setImporting] = useState(false);
-  const [form, setForm] = useState(emptyForm);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [validation, setValidation] = useState<ValidationState | null>(null);
+  const [year, setYear] = useState("2025-26");
+  const [selectedDay, setSelectedDay] = useState<string>(DAYS[0]);
+  const [form, setForm] = useState<EntryForm>(EMPTY_FORM);
+  const [formOpen, setFormOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const classes = useMemo(() => data?.classes ?? [], [data]);
+  const teachers = useMemo(() => data?.teachers ?? [], [data]);
+  const timeSlots = useMemo(() => data?.time_slots ?? [], [data]);
+  const entries = useMemo(() => data?.schedule_entries ?? [], [data]);
+  const formSubjects = useMemo(() => data?.subjects.filter((subject) => !form.class_id || !subject.class_id || subject.class_id === Number(form.class_id)) ?? [], [data, form.class_id]);
+
+  function openNewEntry(classId?: number, periodNumber?: number) {
+    setForm({ ...EMPTY_FORM, class_id: classId ? String(classId) : classes[0] ? String(classes[0].id) : "", period_number: periodNumber ? String(periodNumber) : "1", day_of_week: selectedDay });
+    setFormOpen(true);
+    setError("");
+  }
+
+  function editEntry(entry: MasterScheduleData["schedule_entries"][number]) {
+    setForm({ id: entry.id, class_id: String(entry.class_id), subject_id: String(entry.subject_id ?? ""), teacher_id: String(entry.teacher_id ?? ""), day_of_week: entry.day_of_week, period_number: String(entry.period_number ?? 1), room: entry.room ?? "" });
+    setFormOpen(true);
+    setError("");
+  }
+
+  async function saveEntry(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+    try {
+      const selectedSlot = timeSlots.find((slot) => Number(slot.period_number) === Number(form.period_number));
+      const response = await fetch(form.id ? `/api/admin/schedules/${form.id}` : "/api/admin/schedules", { method: form.id ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, academic_year: year, class_id: Number(form.class_id), subject_id: Number(form.subject_id), teacher_id: Number(form.teacher_id), period_number: Number(form.period_number), start_time: selectedSlot?.start_time, end_time: selectedSlot?.end_time }) });
+      const payload = (await response.json()) as ApiResponse<unknown>;
+      if (!response.ok || payload.success === false) throw new Error(payload.message || "Unable to save timetable entry");
+      setFormOpen(false);
+      setForm(EMPTY_FORM);
+      await loadData();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Unable to save timetable entry.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deleteEntry(id: number) {
+    if (!window.confirm("Delete this timetable entry?")) return;
+    try {
+      const response = await fetch(`/api/admin/schedules/${id}`, { method: "DELETE" });
+      const payload = (await response.json()) as ApiResponse<unknown>;
+      if (!response.ok || payload.success === false) throw new Error(payload.message || "Unable to delete timetable entry");
+      await loadData();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Unable to delete timetable entry.");
+    }
+  }
 
   async function loadData() {
     setLoading(true);
     try {
-      const [scheduleRes, teacherRes, classRes, subjectRes] = await Promise.all([
-        fetch("/api/admin/schedules"),
-        fetch("/api/admin/teachers?staff_type=TEACHER"),
-        fetch("/api/admin/classes"),
-        fetch("/api/admin/subjects"),
-      ]);
-
-      const schedulePayload = (await scheduleRes.json()) as ApiResponse<{ items: Schedule[]; total: number }>;
-      const teacherPayload = (await teacherRes.json()) as ApiResponse<{ items: Teacher[]; total: number }>;
-      const classPayload = (await classRes.json()) as ApiResponse<{ items: ClassRow[]; total: number }>;
-      const subjectPayload = (await subjectRes.json()) as ApiResponse<{ items: Subject[]; total: number }>;
-
-      if (scheduleRes.ok && schedulePayload.success !== false) setItems(schedulePayload.data?.items ?? []);
-      if (teacherRes.ok && teacherPayload.success !== false) setTeachers(teacherPayload.data?.items ?? []);
-      if (classRes.ok && classPayload.success !== false) setClasses(classPayload.data?.items ?? []);
-      if (subjectRes.ok && subjectPayload.success !== false) setSubjects(subjectPayload.data?.items ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load schedule data");
+      const response = await fetch(`/api/schedules/master?academic_year=${encodeURIComponent(year)}`);
+      const payload = (await response.json()) as ApiResponse<MasterScheduleData>;
+      if (!response.ok || payload.success === false) throw new Error(payload.message || "Unable to load timetable");
+      setData(payload.data ?? null);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Unable to load timetable data.");
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => {
-    void Promise.resolve().then(loadData);
-  }, []);
-
-  async function submitForm(event: React.FormEvent) {
-    event.preventDefault();
-    const method = editingId ? "PATCH" : "POST";
-    const endpoint = editingId ? `/api/admin/schedules/${editingId}` : "/api/admin/schedules";
-
-    const response = await fetch(endpoint, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...form,
-        teacher_id: Number(form.teacher_id),
-        class_id: Number(form.class_id),
-        subject_id: Number(form.subject_id),
-        period_number: Number(form.period_number),
-      }),
-    });
-    const payload = (await response.json()) as ApiResponse<Schedule>;
-
-    if (!response.ok || payload.success === false) {
-      setError(payload.message || "Unable to save schedule");
-      return;
-    }
-
-    setForm(emptyForm);
-    setEditingId(null);
-    await loadData();
-  }
-
-  async function handleDelete(id: number) {
-    if (!window.confirm("Delete this schedule entry?")) return;
-    const response = await fetch(`/api/admin/schedules/${id}`, { method: "DELETE" });
-    const payload = (await response.json()) as ApiResponse<null>;
-    if (!response.ok || payload.success === false) {
-      setError(payload.message || "Unable to delete schedule");
-      return;
-    }
-    await loadData();
-  }
-
-  async function importFile(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    setImporting(true);
-    setError("");
-    setImportMessage("");
+  async function validateTimetable() {
     try {
-      const body = new FormData();
-      body.append("file", file);
-      const response = await fetch("/api/admin/schedules/import", { method: "POST", body });
-      const payload = (await response.json()) as ApiResponse<{ imported: number; failed: number; failures: Array<{ row: number; message: string }> }>;
-      if (!response.ok || payload.success === false) throw new Error(payload.message);
-      const failures = payload.data?.failures ?? [];
-      setImportMessage(`${payload.data?.imported ?? 0} row(s) imported${failures.length ? `, ${failures.length} skipped` : ""}. ${failures.slice(0, 3).map((item) => `Row ${item.row}: ${item.message}`).join(" | ")}`);
-      await loadData();
+      const response = await fetch("/api/schedules/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ academic_year: year }),
+      });
+      const payload = (await response.json()) as ApiResponse<ValidationState>;
+      if (!response.ok || payload.success === false) throw new Error(payload.message || "Unable to validate timetable");
+      setValidation(payload.data ?? null);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Unable to import schedule file");
-    } finally {
-      setImporting(false);
+      setError(reason instanceof Error ? reason.message : "Validation failed.");
     }
   }
 
-  function downloadTemplate() {
-    const content = "teacher,class,section,subject,day,period,room,academic_year,start_time,end_time,status\nBhagwati Prasad,1,A,English,Monday,1,101,2025-26,08:00:00,08:45:00,ACTIVE\n";
-    const url = URL.createObjectURL(new Blob([content], { type: "text/csv;charset=utf-8" }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "schedule-template.csv";
-    anchor.click();
-    URL.revokeObjectURL(url);
-  }
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch(`/api/schedules/master?academic_year=${encodeURIComponent(year)}`, { signal: controller.signal })
+      .then(async (response) => {
+        const payload = (await response.json()) as ApiResponse<MasterScheduleData>;
+        if (!response.ok || payload.success === false) throw new Error(payload.message || "Unable to load timetable");
+        setData(payload.data ?? null);
+      })
+      .catch((reason: unknown) => {
+        if (reason instanceof Error && reason.name === "AbortError") return;
+        setError(reason instanceof Error ? reason.message : "Unable to load timetable data.");
+      })
+      .finally(() => setLoading(false));
 
-  function editItem(row: Schedule) {
-    setEditingId(row.id);
-    setForm({
-      teacher_id: String(row.teacher_id),
-      class_id: String(row.class_id),
-      subject_id: String(row.subject_id),
-      day_of_week: row.day_of_week,
-      period_number: String(row.period_number),
-      room: row.room ?? "",
-      academic_year: row.academic_year,
-    });
-  }
+    return () => controller.abort();
+  }, [year]);
 
   return (
-    <main className="p-6">
+    <main className="min-h-screen bg-slate-50 px-4 py-8 md:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-          <h1 className="mb-4 text-2xl font-black text-slate-900">Schedule Management</h1>
-          <div className="mb-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div><h2 className="font-bold text-slate-900">Bulk schedule import</h2><p className="text-xs text-slate-500">Upload .xlsx, .xls, or .csv. Use teacher/class/section/subject names or IDs.</p></div>
-              <div className="flex flex-wrap gap-2"><button type="button" onClick={downloadTemplate} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700">Download template</button><label className="cursor-pointer rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-white">{importing ? "Importing..." : "Upload Excel"}<input type="file" accept=".xlsx,.xls,.csv" onChange={(event) => void importFile(event)} disabled={importing} className="hidden" /></label></div>
+        <header className="rounded-3xl bg-[#B60F17] px-6 py-8 text-white shadow-xl">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.26em] text-red-100">Admin</p>
+              <h1 className="mt-2 text-3xl font-black md:text-4xl">Timetable Builder</h1>
             </div>
-            {importMessage ? <p className="mt-3 text-sm text-green-700">{importMessage}</p> : null}
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => openNewEntry()} className="rounded-xl bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#B60F17]">+ Add Entry</button>
+              <button type="button" onClick={validateTimetable} className="rounded-xl bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#B60F17]">Validate</button>
+              <button type="button" className="rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white">Publish</button>
+            </div>
           </div>
-          <form onSubmit={submitForm} className="grid gap-4 md:grid-cols-3">
-            <select value={form.teacher_id} onChange={(e) => setForm({ ...form, teacher_id: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2" required>
-              <option value="">Select teacher</option>
-              {teachers.map((teacher) => <option key={teacher.id} value={teacher.id}>{teacher.name}</option>)}
-            </select>
-            <select value={form.class_id} onChange={(e) => setForm({ ...form, class_id: e.target.value, subject_id: "" })} className="rounded-xl border border-slate-300 px-3 py-2" required>
-              <option value="">Select class</option>
-              {classes.map((row) => <option key={row.id} value={row.id}>{row.class_name}-{row.section}</option>)}
-            </select>
-            <select value={form.subject_id} onChange={(e) => setForm({ ...form, subject_id: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2" required>
-              <option value="">Select subject</option>
-              {subjects.filter((subject) => !form.class_id || subject.class_id === Number(form.class_id)).map((subject) => <option key={subject.id} value={subject.id}>{subject.subject_name}</option>)}
-            </select>
-            <select value={form.day_of_week} onChange={(e) => setForm({ ...form, day_of_week: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2">
-              {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((day) => <option key={day} value={day}>{day}</option>)}
-            </select>
-            <select value={form.period_number} onChange={(e) => setForm({ ...form, period_number: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2">
-              {Array.from({ length: 6 }, (_, i) => i + 1).map((period) => <option key={period} value={String(period)}>Period {period}</option>)}
-            </select>
-            <input value={form.room} onChange={(e) => setForm({ ...form, room: e.target.value })} placeholder="Room" className="rounded-xl border border-slate-300 px-3 py-2" />
-            <input value={form.academic_year} onChange={(e) => setForm({ ...form, academic_year: e.target.value })} placeholder="Academic year" className="rounded-xl border border-slate-300 px-3 py-2 md:col-span-2" required />
-            <div className="md:col-span-3 flex gap-3">
-              <button type="submit" className="rounded-xl bg-[#B60F17] px-4 py-2 font-semibold text-white">{editingId ? "Update schedule" : "Add schedule"}</button>
-              {editingId ? <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }} className="rounded-xl border border-slate-300 px-4 py-2">Cancel</button> : null}
-            </div>
-          </form>
-          {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
-        </div>
+        </header>
 
-        <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-          <h2 className="mb-4 text-xl font-bold text-slate-900">Schedule List</h2>
-          {loading ? <p>Loading...</p> : items.length === 0 ? <p>No records found.</p> : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead>
-                  <tr className="bg-slate-50 text-slate-700">
-                    <th className="px-3 py-2">Class</th>
-                    <th className="px-3 py-2">Teacher</th>
-                    <th className="px-3 py-2">Subject</th>
-                    <th className="px-3 py-2">Day</th>
-                    <th className="px-3 py-2">Period</th>
-                    <th className="px-3 py-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((row) => (
-                    <tr key={row.id} className="border-t border-slate-200">
-                      <td className="px-3 py-2 font-medium text-slate-900">{row.class_label ?? row.class_id}</td>
-                      <td className="px-3 py-2">{row.teacher_name ?? row.teacher_id}</td>
-                      <td className="px-3 py-2">{row.subject_name ?? row.subject_id}</td>
-                      <td className="px-3 py-2">{row.day_of_week}</td>
-                      <td className="px-3 py-2">{row.period_number}</td>
-                      <td className="px-3 py-2">
-                        <div className="flex gap-2">
-                          <button onClick={() => editItem(row)} className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold">Edit</button>
-                          <button onClick={() => void handleDelete(row.id)} className="rounded-lg border border-red-300 px-2 py-1 text-xs font-semibold text-red-700">Delete</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <section className="grid gap-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:grid-cols-4">
+          <label className="text-sm font-semibold text-slate-700">
+            Academic Year
+            <input value={year} onChange={(event) => setYear(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2" />
+          </label>
+          <div className="text-sm font-semibold text-slate-700">
+            Classes
+            <div className="mt-2 rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-800">{classes.length}</div>
+          </div>
+          <div className="text-sm font-semibold text-slate-700">
+            Teachers
+            <div className="mt-2 rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-800">{teachers.length}</div>
+          </div>
+          <div className="text-sm font-semibold text-slate-700">
+            Periods
+            <div className="mt-2 rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-800">{timeSlots.filter((slot) => slot.period_number != null).length}</div>
+          </div>
+        </section>
+
+        {validation ? (
+          <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 shadow-sm">
+            <div className="font-black uppercase tracking-[0.14em]">Validation result</div>
+            <div className="mt-2">{validation.valid ? "✓ Validation passed" : `✕ ${validation.issues.length} issue(s) found`}</div>
+            <div className="mt-2 space-y-1 text-xs">
+              {validation.issues?.length ? validation.issues.map((issue: { code: string; message: string; scheduleId?: number }, index: number) => <div key={`${issue.code}-${issue.scheduleId ?? index}`}>• {issue.message}</div>) : <div>• No conflicts detected.</div>}
             </div>
-          )}
-        </div>
+          </section>
+        ) : null}
+
+        {error ? <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div> : null}
+
+        <section className="flex flex-wrap items-center gap-2 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+          <span className="mr-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500">Working day</span>
+          {DAYS.map((day) => <button key={day} type="button" onClick={() => setSelectedDay(day)} className={`rounded-xl px-3 py-2 text-xs font-black ${selectedDay === day ? "bg-[#B60F17] text-white" : "border border-slate-300 bg-white text-slate-700"}`}>{day}</button>)}
+        </section>
+
+        {loading ? <div className="rounded-3xl bg-white p-8 text-slate-600 shadow-sm ring-1 ring-slate-200">Loading timetable builder...</div> : !data ? <div className="rounded-3xl bg-white p-8 text-slate-600 shadow-sm ring-1 ring-slate-200">No timetable available.</div> : (
+          <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <table className="min-w-[900px] border-collapse text-left text-sm">
+              <thead>
+                <tr className="bg-[#f8fafc] text-slate-700">
+                  <th className="sticky left-0 z-10 border-r border-slate-200 bg-[#f8fafc] p-3 font-black">CLASS</th>
+                  {timeSlots.map((slot) => (
+                    <th key={slot.id} className="min-w-[140px] border-r border-slate-200 p-3 text-center text-[11px] font-black uppercase tracking-[0.14em]">
+                      {slot.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {classes.map((classRow) => (
+                  <tr key={classRow.id} className="border-t border-slate-200 align-top">
+                    <td className="sticky left-0 z-10 border-r border-slate-200 bg-white p-3 font-black text-slate-900">{classRow.display_name ?? classRow.name}</td>
+                    {timeSlots.map((slot) => {
+                      const matches = entries.filter((entry) => entry.class_id === classRow.id && entry.day_of_week === selectedDay && slot.period_number != null && Number(entry.period_number ?? entry.slot_order ?? 1) === Number(slot.period_number));
+                      const nonTeachingLabel = slot.slot_type === "ASSEMBLY" ? "Prayer" : slot.is_lunch ? "Lunch" : slot.is_break ? "Break" : null;
+                      return (
+                        <td key={`${classRow.id}-${slot.id}`} className="min-w-[140px] border-r border-slate-200 bg-white p-2 align-top">
+                          <div className="space-y-2">{nonTeachingLabel ? <div className={`rounded-xl border p-2 text-[11px] font-bold ${slot.is_lunch ? "border-orange-200 bg-orange-50 text-orange-800" : slot.is_break ? "border-amber-200 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>{nonTeachingLabel}<div className="mt-1 text-[10px] font-medium">{slot.start_time.slice(0, 5)}–{slot.end_time.slice(0, 5)}</div></div> : matches.length ? matches.map((entry) => (
+                            <div key={`${classRow.id}-${slot.id}-${entry.id}`} className="rounded-xl border border-slate-200 p-2 shadow-sm" style={{ backgroundColor: entry.color || "#f8fafc" }}>
+                              <div className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-600">{entry.subject_name || "Subject"}</div>
+                              <div className="mt-1 text-[11px] font-bold text-slate-900">{entry.teacher_name || "Teacher"}</div>
+                              <div className="mt-1 text-[10px] text-slate-700">{entry.room || "Room"}</div>
+                              <div className="mt-2 flex gap-2"><button type="button" onClick={() => editEntry(entry)} className="text-[10px] font-black uppercase text-slate-700 underline">Edit</button><button type="button" onClick={() => deleteEntry(entry.id)} className="text-[10px] font-black uppercase text-red-700 underline">Delete</button></div>
+                            </div>
+                          )) : <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-400">Free<button type="button" onClick={() => openNewEntry(classRow.id, slot.period_number ?? undefined)} className="mt-2 block text-[10px] font-black uppercase text-[#B60F17] underline">Add subject</button></div>}</div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {formOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+            <form onSubmit={saveEntry} className="w-full max-w-2xl space-y-4 rounded-3xl bg-white p-6 shadow-2xl">
+              <div className="flex items-center justify-between"><div><p className="text-xs font-black uppercase tracking-[0.16em] text-[#B60F17]">{form.id ? "Edit timetable entry" : "New timetable entry"}</p><h2 className="mt-1 text-2xl font-black text-slate-900">Class period assignment</h2></div><button type="button" onClick={() => setFormOpen(false)} className="text-2xl font-bold text-slate-400" aria-label="Close">×</button></div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="text-sm font-bold text-slate-700">Class<select required value={form.class_id} onChange={(event) => setForm((current) => ({ ...current, class_id: event.target.value, subject_id: "" }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select class</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.display_name ?? item.name}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Subject<select required value={form.subject_id} onChange={(event) => setForm((current) => ({ ...current, subject_id: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select subject</option>{formSubjects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Teacher<select required value={form.teacher_id} onChange={(event) => setForm((current) => ({ ...current, teacher_id: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select teacher</option>{teachers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Day<select required value={form.day_of_week} onChange={(event) => setForm((current) => ({ ...current, day_of_week: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2">{DAYS.map((day) => <option key={day}>{day}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Period<select required value={form.period_number} onChange={(event) => setForm((current) => ({ ...current, period_number: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2">{timeSlots.filter((slot) => slot.period_number != null).map((slot) => <option key={slot.id} value={slot.period_number!}>Period {slot.period_number} · {slot.start_time.slice(0, 5)}–{slot.end_time.slice(0, 5)}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Room <span className="font-normal text-slate-400">(optional)</span><input value={form.room} onChange={(event) => setForm((current) => ({ ...current, room: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="e.g. Room 101" /></label>
+              </div>
+              <div className="flex justify-end gap-3"><button type="button" onClick={() => setFormOpen(false)} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700">Cancel</button><button disabled={saving} type="submit" className="rounded-xl bg-[#B60F17] px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{saving ? "Saving..." : "Save entry"}</button></div>
+            </form>
+          </div>
+        ) : null}
       </div>
     </main>
   );

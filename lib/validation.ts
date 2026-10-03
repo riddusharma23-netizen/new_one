@@ -64,10 +64,12 @@ export function isDayOfWeek(value: string): value is DayOfWeek {
 }
 
 export const PERIOD_TIMES: Record<number, { start: string; end: string }> = {
-  1: { start: "08:00:00", end: "08:45:00" },
-  2: { start: "08:45:00", end: "09:30:00" },
-  3: { start: "09:45:00", end: "10:30:00" },
-  4: { start: "10:30:00", end: "11:15:00" },
-  5: { start: "11:15:00", end: "12:00:00" },
-  6: { start: "12:00:00", end: "12:45:00" },
+  1: { start: "07:45:00", end: "08:25:00" },
+  2: { start: "08:25:00", end: "09:05:00" },
+  3: { start: "09:05:00", end: "09:45:00" },
+  4: { start: "10:00:00", end: "10:40:00" },
+  5: { start: "10:40:00", end: "11:20:00" },
+  6: { start: "11:50:00", end: "12:30:00" },
+  7: { start: "12:30:00", end: "13:10:00" },
+  8: { start: "13:10:00", end: "13:50:00" },
 };

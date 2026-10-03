@@ -1,113 +1,222 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
-const PERIODS = [1, 2, 3, 4, 5, 6];
-
-type Schedule = {
-  id: number;
-  day_of_week: (typeof DAYS)[number];
-  period_number: number;
-  start_time: string;
-  end_time: string;
-  room: string | null;
-  academic_year: string;
-  teacher_name: string;
-  subject_name: string;
-  class_label: string;
-};
+import type { MasterScheduleData } from "@/lib/schedule-master";
 
 type ApiResponse<T> = { success: boolean; message: string; data?: T };
+type ViewMode = "master" | "class" | "teacher";
 
-function timeLabel(value: string) {
-  return value.slice(0, 5);
-}
+const DEFAULT_YEAR = "2025-26";
 
 export default function SchedulesPage() {
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [academicYear, setAcademicYear] = useState("");
-  const [classFilter, setClassFilter] = useState("");
-  const [teacherFilter, setTeacherFilter] = useState("");
+  const [data, setData] = useState<MasterScheduleData | null>(null);
+  const [year, setYear] = useState(DEFAULT_YEAR);
+  const [view, setView] = useState<ViewMode>("master");
+  const [selectedClass, setSelectedClass] = useState("all");
+  const [selectedTeacher, setSelectedTeacher] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (academicYear) params.set("academic_year", academicYear);
-    void fetch(`/api/schedules?${params.toString()}`)
-      .then(async (response) => {
-        const payload = (await response.json()) as ApiResponse<Schedule[]>;
-        if (!response.ok || payload.success === false) throw new Error(payload.message);
-        setSchedules(payload.data ?? []);
-      })
-      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Unable to load schedules."))
-      .finally(() => setLoading(false));
-  }, [academicYear]);
+    const controller = new AbortController();
 
-  const classes = useMemo(() => [...new Set(schedules.map((item) => item.class_label))].sort(), [schedules]);
-  const teachers = useMemo(() => [...new Set(schedules.map((item) => item.teacher_name))].sort(), [schedules]);
-  const filtered = schedules.filter((item) =>
-    (!classFilter || item.class_label === classFilter) &&
-    (!teacherFilter || item.teacher_name === teacherFilter)
+    void fetch(`/api/schedules/master?academic_year=${encodeURIComponent(year)}`, { signal: controller.signal })
+      .then(async (response) => {
+        const payload = (await response.json()) as ApiResponse<MasterScheduleData>;
+        if (!response.ok || payload.success === false) throw new Error(payload.message || "Unable to load timetable");
+        setData(payload.data ?? null);
+      })
+      .catch((reason: unknown) => {
+        if (reason instanceof Error && reason.name === "AbortError") return;
+        setError(reason instanceof Error ? reason.message : "Unable to load timetable.");
+      })
+      .finally(() => setLoading(false));
+
+    return () => controller.abort();
+  }, [year]);
+
+  const classes = useMemo(() => data?.classes ?? [], [data]);
+  const teachers = useMemo(() => data?.teachers ?? [], [data]);
+  const timeSlots = useMemo(() => data?.time_slots ?? [], [data]);
+  const entries = useMemo(() => data?.schedule_entries ?? [], [data]);
+
+  const filteredClasses = useMemo(() => {
+    if (!data) return [];
+    return selectedClass === "all" ? data.classes : data.classes.filter((item) => String(item.id) === selectedClass);
+  }, [data, selectedClass]);
+
+  const filteredTeachers = useMemo(() => {
+    if (!data) return [];
+    return selectedTeacher === "all" ? data.teachers : data.teachers.filter((item) => String(item.id) === selectedTeacher);
+  }, [data, selectedTeacher]);
+
+  const getEntriesForClass = (classId: number) => entries.filter((item) => item.class_id === classId);
+
+  const renderEntry = (entry: MasterScheduleData["schedule_entries"][number]) => (
+    <div key={entry.id} className="rounded-md border border-slate-200 bg-white/80 p-2 text-left shadow-sm" style={{ backgroundColor: entry.color || "#f8fafc" }}>
+      <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-700">{entry.group_name || "Main"}</div>
+      <div className="mt-1 text-[11px] font-black text-slate-900">{entry.subject_name || entry.display_label || "Free"}</div>
+      <div className="mt-1 text-[10px] text-slate-700">{entry.teacher_name || "Teacher"}</div>
+      {entry.room ? <div className="mt-1 text-[10px] text-slate-600">{entry.room}</div> : null}
+    </div>
   );
-  const cell = (day: string, period: number) => filtered.find(
-    (item) => item.day_of_week === day && item.period_number === period
+
+  const renderMasterGrid = () => (
+    <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <table className="min-w-[900px] border-collapse text-left text-sm">
+        <thead>
+          <tr className="bg-[#f8fafc] text-slate-700">
+            <th className="sticky left-0 z-10 border-r border-slate-200 bg-[#f8fafc] p-3 font-bold">Class</th>
+            {timeSlots.map((slot) => (
+              <th key={slot.id} className="min-w-[120px] border-r border-slate-200 p-3 text-center text-[11px] font-black uppercase tracking-[0.14em]">
+                {slot.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {filteredClasses.map((classRow) => (
+            <tr key={classRow.id} className="border-t border-slate-200 align-top">
+              <td className="sticky left-0 z-10 border-r border-slate-200 bg-white p-3 font-black text-slate-900">{classRow.display_name}</td>
+              {timeSlots.map((slot) => {
+                const matches = getEntriesForClass(classRow.id).filter((item) => slot.period_number != null && Number(item.period_number ?? item.slot_order ?? item.id) === Number(slot.period_number));
+                return (
+                  <td key={`${classRow.id}-${slot.id}`} className="min-w-[120px] border-r border-slate-200 bg-white p-2 align-top">
+                    <div className="space-y-2">{slot.slot_type === "ASSEMBLY" || slot.is_break || slot.is_lunch ? <div className={`rounded-md border p-2 text-[11px] font-bold ${slot.is_lunch ? "border-orange-200 bg-orange-50 text-orange-800" : slot.is_break ? "border-amber-200 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>{slot.slot_type === "ASSEMBLY" ? "Prayer" : slot.is_lunch ? "Lunch" : "Break"}<div className="mt-1 text-[10px] font-medium">{slot.start_time.slice(0, 5)}–{slot.end_time.slice(0, 5)}</div></div> : matches.length ? matches.map(renderEntry) : <div className="rounded-md border border-dashed border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-400">Free</div>}</div>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  const renderClassView = () => (
+    <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <table className="min-w-full border-collapse text-left text-sm">
+        <thead className="bg-slate-100 text-slate-700">
+          <tr>
+            <th className="px-4 py-3">Time</th>
+            <th className="px-4 py-3">Subject</th>
+            <th className="px-4 py-3">Teacher</th>
+            <th className="px-4 py-3">Group</th>
+            <th className="px-4 py-3">Room</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredClasses.flatMap((classRow) =>
+            timeSlots.map((slot) => {
+              if (slot.period_number == null) {
+                return <tr key={`${classRow.id}-${slot.id}`} className="border-t border-slate-200 bg-slate-50"><td className="px-4 py-3 font-medium text-slate-700">{slot.label}</td><td colSpan={4} className="px-4 py-3 font-bold text-slate-600">{slot.slot_type === "ASSEMBLY" ? "Prayer" : slot.is_lunch ? "Lunch" : "Break"}</td></tr>;
+              }
+              const matches = getEntriesForClass(classRow.id).filter((item) => Number(item.period_number ?? item.slot_order ?? item.id) === Number(slot.period_number));
+              if (!matches.length) return null;
+              return matches.map((entry) => (
+                <tr key={`${classRow.id}-${slot.id}-${entry.id}`} className="border-t border-slate-200 align-top">
+                  <td className="px-4 py-3 font-medium text-slate-700">{slot.label}</td>
+                  <td className="px-4 py-3 font-bold text-slate-900">{entry.subject_name || "N/A"}</td>
+                  <td className="px-4 py-3 text-slate-700">{entry.teacher_name || "N/A"}</td>
+                  <td className="px-4 py-3 text-slate-700">{entry.group_name || "Main"}</td>
+                  <td className="px-4 py-3 text-slate-700">{entry.room || "—"}</td>
+                </tr>
+              ));
+            })
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  const renderTeacherView = () => (
+    <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <table className="min-w-full border-collapse text-left text-sm">
+        <thead className="bg-slate-100 text-slate-700">
+          <tr>
+            <th className="px-4 py-3">Time</th>
+            <th className="px-4 py-3">Class</th>
+            <th className="px-4 py-3">Subject</th>
+            <th className="px-4 py-3">Group</th>
+            <th className="px-4 py-3">Room</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredTeachers.flatMap((teacher) =>
+            entries.filter((entry) => entry.teacher_id === teacher.id).map((entry) => {
+              const matchingSlot = timeSlots.find((slot) => Number(slot.period_number) === Number(entry.period_number ?? entry.slot_order ?? 1));
+              return (
+                <tr key={`${teacher.id}-${entry.id}`} className="border-t border-slate-200 align-top">
+                  <td className="px-4 py-3 font-medium text-slate-700">{matchingSlot?.label ?? entry.start_time ?? "Period"}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900">{entry.class_name}</td>
+                  <td className="px-4 py-3 font-bold text-slate-900">{entry.subject_name || "N/A"}</td>
+                  <td className="px-4 py-3 text-slate-700">{entry.group_name || "Main"}</td>
+                  <td className="px-4 py-3 text-slate-700">{entry.room || "—"}</td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-12 md:px-8">
+    <main className="min-h-screen bg-slate-50 px-4 py-10 md:px-8">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-8 rounded-3xl bg-[#B70F17] px-6 py-10 text-white shadow-xl md:px-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-red-100">Academic planning</p>
-          <h1 className="mt-3 text-4xl font-black md:text-5xl">Weekly timetable</h1>
-          <p className="mt-3 max-w-2xl text-red-100">View the current class and teacher schedule published by the school administration.</p>
+        <header className="mb-8 rounded-[28px] bg-[#B60F17] px-6 py-8 text-white shadow-xl md:px-10">
+          <p className="text-xs font-black uppercase tracking-[0.26em] text-red-100">Academic year {year}</p>
+          <h1 className="mt-3 text-4xl font-black md:text-5xl">{data?.school?.name ?? "School Timetable"}</h1>
+          <p className="mt-3 max-w-2xl text-red-50">Master timetable • class-wise • teacher-wise • print-ready</p>
         </header>
 
-        <section className="mb-6 grid gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:grid-cols-3">
+        <section className="mb-6 grid gap-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:grid-cols-4">
           <label className="text-sm font-semibold text-slate-700">
             Academic year
-            <input value={academicYear} onChange={(event) => setAcademicYear(event.target.value)} placeholder="e.g. 2025-26" className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 font-normal" />
+            <input value={year} onChange={(event) => {
+              setLoading(true);
+              setError("");
+              setYear(event.target.value);
+            }} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 font-normal" />
           </label>
           <label className="text-sm font-semibold text-slate-700">
             Class
-            <select value={classFilter} onChange={(event) => setClassFilter(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 font-normal">
-              <option value="">All classes</option>
-              {classes.map((value) => <option key={value} value={value}>{value}</option>)}
+            <select value={selectedClass} onChange={(event) => setSelectedClass(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 font-normal">
+              <option value="all">All classes</option>
+              {classes.map((item) => <option key={item.id} value={String(item.id)}>{item.display_name}</option>)}
             </select>
           </label>
           <label className="text-sm font-semibold text-slate-700">
             Teacher
-            <select value={teacherFilter} onChange={(event) => setTeacherFilter(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 font-normal">
-              <option value="">All teachers</option>
-              {teachers.map((value) => <option key={value} value={value}>{value}</option>)}
+            <select value={selectedTeacher} onChange={(event) => setSelectedTeacher(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 font-normal">
+              <option value="all">All teachers</option>
+              {teachers.map((item) => <option key={item.id} value={String(item.id)}>{item.name}</option>)}
             </select>
           </label>
+          <div className="text-sm font-semibold text-slate-700">
+            View
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(["master", "class", "teacher"] as const).map((item) => (
+                <button key={item} type="button" onClick={() => setView(item)} className={`rounded-xl px-3 py-2 text-xs font-black uppercase tracking-[0.14em] ${view === item ? "bg-[#B60F17] text-white" : "border border-slate-300 bg-white text-slate-700"}`}>
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
         </section>
 
-        <section className="overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-          {loading ? <p className="p-8 text-slate-600">Loading...</p> : error ? <p className="p-8 text-red-600">{error}</p> : filtered.length === 0 ? <p className="p-8 text-slate-600">No records found.</p> : (
-            <table className="min-w-[900px] w-full text-left text-sm">
-              <thead className="bg-slate-100 text-slate-700">
-                <tr>
-                  <th className="sticky left-0 bg-slate-100 px-4 py-4">Period</th>
-                  {DAYS.map((day) => <th key={day} className="px-4 py-4">{day}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {PERIODS.map((period) => (
-                  <tr key={period} className="border-t border-slate-200 align-top">
-                    <th className="sticky left-0 bg-white px-4 py-4 font-bold text-slate-900">Period {period}</th>
-                    {DAYS.map((day) => {
-                      const item = cell(day, period);
-                      return <td key={day} className="min-w-32 px-4 py-4">{item ? <div className="rounded-xl bg-red-50 p-3"><p className="font-bold text-[#B70F17]">{item.subject_name}</p><p className="mt-1 text-xs text-slate-600">{item.class_label} - {item.teacher_name}</p><p className="mt-1 text-xs text-slate-500">{timeLabel(item.start_time)} - {timeLabel(item.end_time)}{item.room ? ` - Room ${item.room}` : ""}</p></div> : <span className="text-slate-400">Free</span>}</td>;
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </section>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm text-slate-600">{data ? `${data.classes.length} classes • ${data.time_slots.filter((slot) => slot.period_number != null).length} periods • ${entries.length} schedule entries` : "Loading timetable..."}</div>
+          <button type="button" onClick={() => window.print()} className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white">Print timetable</button>
+        </div>
+
+        {loading ? <div className="rounded-3xl bg-white p-8 text-slate-600 shadow-sm ring-1 ring-slate-200">Loading timetable...</div> : error ? <div className="rounded-3xl bg-red-50 p-8 text-red-700 shadow-sm ring-1 ring-red-200">{error}</div> : !data || !data.classes.length ? <div className="rounded-3xl bg-white p-8 text-slate-600 shadow-sm ring-1 ring-slate-200">No schedule has been published for this academic year.</div> : (
+          <>
+            {view === "master" && renderMasterGrid()}
+            {view === "class" && renderClassView()}
+            {view === "teacher" && renderTeacherView()}
+          </>
+        )}
       </div>
     </main>
   );

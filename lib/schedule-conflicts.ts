@@ -21,8 +21,8 @@ export async function validateSchedule(input: ScheduleInput, excludeId?: number)
     return "Day must be Monday through Saturday";
   }
 
-  if (input.period_number < 1 || input.period_number > 6) {
-    return "Period must be between 1 and 6";
+  if (input.period_number < 1 || input.period_number > 8) {
+    return "Period must be between 1 and 8";
   }
 
   if (!input.academic_year.trim()) {

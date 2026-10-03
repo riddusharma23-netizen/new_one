@@ -619,6 +619,43 @@ body {
   }
 }
 
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  body {
+    background: white;
+  }
+
+  nav,
+  footer,
+  .no-print,
+  button,
+  .print-hidden {
+    display: none !important;
+  }
+
+  main {
+    background: white !important;
+    color: #111827 !important;
+    padding: 0 !important;
+  }
+
+  table,
+  th,
+  td {
+    break-inside: avoid;
+    color: #111827 !important;
+  }
+
+  .schedule-print {
+    width: 100%;
+    max-width: none;
+  }
+}
+
 
 /*  header text shining css */
 
