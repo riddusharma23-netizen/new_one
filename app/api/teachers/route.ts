@@ -5,8 +5,10 @@ export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const search = url.searchParams.get("search")?.trim();
+    const staffType = url.searchParams.get("staff_type") === "SUPPORT" ? "SUPPORT" : "TEACHER";
     const params: string[] = [];
-    const where = ["status = 'ACTIVE'", "staff_type = 'TEACHER'"];
+    const where = ["status = 'ACTIVE'", "staff_type = ?"];
+    params.push(staffType);
 
     if (search) {
       where.push("(name LIKE ? OR designation LIKE ? OR department LIKE ? OR subject LIKE ?)");

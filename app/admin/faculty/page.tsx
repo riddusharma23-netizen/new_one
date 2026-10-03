@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import AdminTeachersPage from "../teachers/page";
 
 export default function AdminFacultyPage() {
-  redirect("/admin/teachers");
+  return <AdminTeachersPage staffType="TEACHER" />;
 }

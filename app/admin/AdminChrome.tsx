@@ -13,6 +13,7 @@ import {
   Menu,
   School,
   Settings2,
+  HeartPulse,
   Users,
   X,
 } from "lucide-react";
@@ -21,6 +22,7 @@ import AdminBackButton from "./AdminBackButton";
 const navigation = [
   { label: "Overview", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Our Faculty", href: "/admin/faculty", icon: Users },
+  { label: "Support Staff", href: "/admin/support-staff", icon: HeartPulse },
   { label: "Gallery", href: "/admin/gallery", icon: Images },
   { label: "Departments", href: "/admin/departments", icon: School },
   { label: "Schedules", href: "/admin/schedules", icon: CalendarDays },

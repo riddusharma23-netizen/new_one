@@ -100,8 +100,8 @@ export async function POST(request: Request) {
           failures.push({ row: rowNumber, message: "Teacher, class, or subject was not found" });
           continue;
         }
-        if (!day || !isDayOfWeek(day) || !period || period < 1 || period > 6 || !academicYear) {
-          failures.push({ row: rowNumber, message: "Day, period (1-6), and academic year are required" });
+        if (!day || !isDayOfWeek(day) || !period || period < 1 || period > 8 || !academicYear) {
+          failures.push({ row: rowNumber, message: "Day, period (1-8), and academic year are required" });
           continue;
         }
         if (subject.class_id !== selectedClassId) {
