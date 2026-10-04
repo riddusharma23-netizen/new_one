@@ -52,7 +52,7 @@ export default function AdminTeachersPage({ staffType = "TEACHER" }: { staffType
   const loadTeachers = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/teachers?staff_type=${staffType}`);
+      const response = await fetch(`/api/admin/teachers?staff_type=${staffType}&pageSize=50`);
       const payload = (await response.json()) as ApiResponse<{ items: Teacher[]; total: number }>;
       if (!response.ok || payload.success === false) {
         throw new Error(payload.message || "Unable to load teachers");

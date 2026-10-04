@@ -1,0 +1,23 @@
+*   [33m60fb40b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;32mbackup-before-backend-pull[m[33m)[m Merge remote main into main
+[31m|[m[32m\[m  
+[31m|[m * [33m2c0c330[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m new scheduling features added
+[31m|[m * [33m072f3b3[m "admin with backend done"
+* [32m|[m   [33m89686f9[m Merge pull request #3 from riddusharma23-netizen/fix/patch-vulnerabilities-b955652d-1790604686
+[33m|[m[34m\[m [32m\[m  
+[33m|[m * [32m|[m [33m7bb95c3[m[33m ([m[1;31morigin/fix/patch-vulnerabilities-b955652d-1790604686[m[33m)[m fix: patch Node.js security vulnerabilities
+[33m|[m[33m/[m [32m/[m  
+* [32m|[m   [33mca6a63e[m Merge pull request #2 from riddusharma23-netizen/fix/patch-vulnerabilities-2629049d-1790603689
+[35m|[m[36m\[m [32m\[m  
+[35m|[m * [32m|[m [33m9b145ea[m[33m ([m[1;31morigin/fix/patch-vulnerabilities-2629049d-1790603689[m[33m)[m fix: patch Node.js security vulnerabilities
+[35m|[m[35m/[m [32m/[m  
+* [32m|[m   [33m699c4ab[m Merge pull request #1 from riddusharma23-netizen/fix/patch-vulnerabilities-9ddcff79-1790603024
+[1;31m|[m[1;32m\[m [32m\[m  
+[1;31m|[m * [32m|[m [33mc92949b[m[33m ([m[1;31morigin/fix/patch-vulnerabilities-9ddcff79-1790603024[m[33m)[m fix: patch Node.js security vulnerabilities
+[1;31m|[m[1;31m/[m [32m/[m  
+* [32m|[m [33m35f3de9[m Update project
+* [32m|[m [33m0ed3ab3[m Update project
+* [32m|[m [33m4fcb789[m "updated admins"
+* [32m|[m [33m7f2c938[m "admin with backend done"
+[32m|[m[32m/[m  
+* [33ma307723[m "admin and backend "
+* [33m0b4797d[m Update project
