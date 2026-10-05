@@ -25,6 +25,7 @@ const emptyForm = {
   status: "ACTIVE",
 };
 
+
 export default function AdminSubjectsPage() {
   const [items, setItems] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);

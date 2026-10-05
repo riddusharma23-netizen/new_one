@@ -505,7 +505,7 @@ export default function Teachers() {
         >
 
           <img
-            src="/aboutimages/arun.jpg"
+            src="/aboutimages/arun-uncle.png"
             alt="Founder"
             className="
             w-full
@@ -961,7 +961,7 @@ border-[#F8F400]
         >
 
           <img
-            src="/aboutimages/nk-bansal.jpg"
+            src="/aboutimages/nkbansal1.png"
             alt="Founder"
 
             className="
