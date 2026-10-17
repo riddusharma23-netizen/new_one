@@ -89,7 +89,8 @@ export type MasterScheduleData = {
   schedule_entries: MasterScheduleEntry[];
 };
 
-export const DEFAULT_TIME_SLOTS: MasterTimeSlot[] = [
+// Retained only for reference while existing deployments migrate to the PDF timings below.
+export const LEGACY_TIME_SLOTS: MasterTimeSlot[] = [
   { id: 1, label: "Prayer · 7:30–7:45 AM", start_time: "07:30:00", end_time: "07:45:00", slot_order: 1, period_number: null, slot_type: "ASSEMBLY", is_break: false, is_lunch: false, active: true },
   { id: 2, label: "Period 1 · 7:45–8:25 AM", start_time: "07:45:00", end_time: "08:25:00", slot_order: 2, period_number: 1, slot_type: "REGULAR", is_break: false, is_lunch: false, active: true },
   { id: 3, label: "Period 2 · 8:25–9:05 AM", start_time: "08:25:00", end_time: "09:05:00", slot_order: 3, period_number: 2, slot_type: "REGULAR", is_break: false, is_lunch: false, active: true },
@@ -101,6 +102,23 @@ export const DEFAULT_TIME_SLOTS: MasterTimeSlot[] = [
   { id: 9, label: "Period 6 · 11:50 AM–12:30 PM", start_time: "11:50:00", end_time: "12:30:00", slot_order: 9, period_number: 6, slot_type: "REGULAR", is_break: false, is_lunch: false, active: true },
   { id: 10, label: "Period 7 · 12:30–1:10 PM", start_time: "12:30:00", end_time: "13:10:00", slot_order: 10, period_number: 7, slot_type: "REGULAR", is_break: false, is_lunch: false, active: true },
   { id: 11, label: "Period 8 · 1:10–1:50 PM", start_time: "13:10:00", end_time: "13:50:00", slot_order: 11, period_number: 8, slot_type: "REGULAR", is_break: false, is_lunch: false, active: true },
+];
+
+// Initial configuration transcribed from the supplied "Time Table 8 OCT" reference.
+// Database values replace these defaults once an administrator saves the configuration.
+export const DEFAULT_TIME_SLOTS: MasterTimeSlot[] = [
+  { id: 1, label: "Prayer", start_time: "09:30:00", end_time: "09:45:00", slot_order: 1, period_number: null, slot_type: "ASSEMBLY", is_break: false, is_lunch: false, active: true },
+  { id: 2, label: "Period I", start_time: "09:45:00", end_time: "10:30:00", slot_order: 2, period_number: 1, slot_type: "REGULAR", is_break: false, is_lunch: false, active: true },
+  { id: 3, label: "Period II", start_time: "10:30:00", end_time: "11:15:00", slot_order: 3, period_number: 2, slot_type: "REGULAR", is_break: false, is_lunch: false, active: true },
+  { id: 4, label: "Morning Break", start_time: "11:15:00", end_time: "11:20:00", slot_order: 4, period_number: null, slot_type: "BREAK", is_break: true, is_lunch: false, active: true },
+  { id: 5, label: "Period III", start_time: "11:20:00", end_time: "12:05:00", slot_order: 5, period_number: 3, slot_type: "REGULAR", is_break: false, is_lunch: false, active: true },
+  { id: 6, label: "Period IV", start_time: "12:05:00", end_time: "12:45:00", slot_order: 6, period_number: 4, slot_type: "REGULAR", is_break: false, is_lunch: false, active: true },
+  { id: 7, label: "Lunch", start_time: "12:45:00", end_time: "13:15:00", slot_order: 7, period_number: null, slot_type: "LUNCH", is_break: false, is_lunch: true, active: true },
+  { id: 8, label: "Period V", start_time: "13:15:00", end_time: "13:55:00", slot_order: 8, period_number: 5, slot_type: "REGULAR", is_break: false, is_lunch: false, active: true },
+  { id: 9, label: "Period VI", start_time: "13:55:00", end_time: "14:35:00", slot_order: 9, period_number: 6, slot_type: "REGULAR", is_break: false, is_lunch: false, active: true },
+  { id: 10, label: "Afternoon Break", start_time: "14:35:00", end_time: "14:40:00", slot_order: 10, period_number: null, slot_type: "BREAK", is_break: true, is_lunch: false, active: true },
+  { id: 11, label: "Period VII", start_time: "14:40:00", end_time: "15:20:00", slot_order: 11, period_number: 7, slot_type: "REGULAR", is_break: false, is_lunch: false, active: true },
+  { id: 12, label: "Period VIII", start_time: "15:20:00", end_time: "15:50:00", slot_order: 12, period_number: 8, slot_type: "REGULAR", is_break: false, is_lunch: false, active: true },
 ];
 
 export function getSubjectColor(name: string) {

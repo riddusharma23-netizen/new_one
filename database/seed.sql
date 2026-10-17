@@ -16,6 +16,23 @@ INSERT INTO settings (setting_key, setting_value) VALUES
   ('school_name', 'Smt. Champi Devi Inter College'),
   ('academic_year', '2025-26');
 
+-- Initial school day structure from Time Table 8 OCT. It is editable in Admin > Schedules.
+INSERT INTO time_slots
+  (label, start_time, end_time, slot_order, slot_type, is_break, is_lunch, active)
+VALUES
+  ('Prayer', '09:30:00', '09:45:00', 1, 'ASSEMBLY', 0, 0, 'ACTIVE'),
+  ('Period I', '09:45:00', '10:30:00', 2, 'REGULAR', 0, 0, 'ACTIVE'),
+  ('Period II', '10:30:00', '11:15:00', 3, 'REGULAR', 0, 0, 'ACTIVE'),
+  ('Morning Break', '11:15:00', '11:20:00', 4, 'BREAK', 1, 0, 'ACTIVE'),
+  ('Period III', '11:20:00', '12:05:00', 5, 'REGULAR', 0, 0, 'ACTIVE'),
+  ('Period IV', '12:05:00', '12:45:00', 6, 'REGULAR', 0, 0, 'ACTIVE'),
+  ('Lunch', '12:45:00', '13:15:00', 7, 'LUNCH', 0, 1, 'ACTIVE'),
+  ('Period V', '13:15:00', '13:55:00', 8, 'REGULAR', 0, 0, 'ACTIVE'),
+  ('Period VI', '13:55:00', '14:35:00', 9, 'REGULAR', 0, 0, 'ACTIVE'),
+  ('Afternoon Break', '14:35:00', '14:40:00', 10, 'BREAK', 1, 0, 'ACTIVE'),
+  ('Period VII', '14:40:00', '15:20:00', 11, 'REGULAR', 0, 0, 'ACTIVE'),
+  ('Period VIII', '15:20:00', '15:50:00', 12, 'REGULAR', 0, 0, 'ACTIVE');
+
 INSERT INTO teachers
   (name, designation, department, subject, qualification, experience, email, phone, image, bio, staff_type, status, display_order)
 VALUES

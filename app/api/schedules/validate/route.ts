@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const teacherId = asInteger(body.teacher_id);
 
     const rows = (await query(
-      `SELECT id, teacher_id, class_id, room, day_of_week, period_number, academic_year, status
+      `SELECT id, teacher_id, class_id, room, day_of_week, period_number, start_time, end_time, academic_year, status
        FROM schedules
        WHERE academic_year = ? AND status = 'ACTIVE'${classId ? " AND class_id = ?" : ""}${teacherId ? " AND teacher_id = ?" : ""}
        ORDER BY day_of_week, period_number`,
@@ -23,37 +23,26 @@ export async function POST(request: Request) {
     const byRoom = new Map<string, Record<string, unknown>[]>();
 
     for (const row of rows as Record<string, unknown>[]) {
-      const keyTeacher = `${row.teacher_id}|${row.day_of_week}|${row.period_number}`;
-      const keyClass = `${row.class_id}|${row.day_of_week}|${row.period_number}`;
-      const keyRoom = `${row.room || "UNASSIGNED"}|${row.day_of_week}|${row.period_number}`;
+      const keyTeacher = `${row.teacher_id}|${row.day_of_week}`;
+      const keyClass = `${row.class_id}|${row.day_of_week}`;
+      const keyRoom = row.room ? `${row.room}|${row.day_of_week}` : "";
       if (!byTeacher.has(keyTeacher)) byTeacher.set(keyTeacher, []);
       if (!byClass.has(keyClass)) byClass.set(keyClass, []);
-      if (!byRoom.has(keyRoom)) byRoom.set(keyRoom, []);
+      if (keyRoom && !byRoom.has(keyRoom)) byRoom.set(keyRoom, []);
       byTeacher.get(keyTeacher)?.push(row);
       byClass.get(keyClass)?.push(row);
-      byRoom.get(keyRoom)?.push(row);
+      if (keyRoom) byRoom.get(keyRoom)?.push(row);
     }
 
-    for (const [key, matches] of byTeacher.entries()) {
-      if (matches.length > 1) {
-        const [first] = matches;
-        issues.push({ code: "TEACHER_CONFLICT", message: `Teacher conflict detected in slot ${key.replace("|", " on ")}.`, scheduleId: Number(first.id) });
+    const addOverlaps = (sets: Map<string, Record<string, unknown>[]>, code: string, label: string) => sets.forEach((matches, key) => {
+      for (let index = 0; index < matches.length; index += 1) for (let other = index + 1; other < matches.length; other += 1) {
+        const a = matches[index]; const b = matches[other];
+        if (String(a.start_time) < String(b.end_time) && String(a.end_time) > String(b.start_time)) issues.push({ code, message: `${label} conflict detected for ${key.replace("|", " on ")}.`, scheduleId: Number(a.id) });
       }
-    }
-
-    for (const [key, matches] of byClass.entries()) {
-      if (matches.length > 1) {
-        const [first] = matches;
-        issues.push({ code: "CLASS_CONFLICT", message: `Class conflict detected in slot ${key.replace("|", " on ")}.`, scheduleId: Number(first.id) });
-      }
-    }
-
-    for (const [key, matches] of byRoom.entries()) {
-      if (matches.length > 1 && key !== "UNASSIGNED|Monday|1") {
-        const [first] = matches;
-        issues.push({ code: "ROOM_CONFLICT", message: `Room conflict detected in slot ${key.replace("|", " on ")}.`, scheduleId: Number(first.id) });
-      }
-    }
+    });
+    addOverlaps(byTeacher, "TEACHER_CONFLICT", "Teacher");
+    addOverlaps(byClass, "CLASS_CONFLICT", "Class");
+    addOverlaps(byRoom, "ROOM_CONFLICT", "Room");
 
     const duplicates = rows.filter((row, index, record) =>
       record.findIndex((item) =>

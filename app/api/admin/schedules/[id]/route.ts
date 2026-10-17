@@ -27,7 +27,7 @@ export async function PATCH(request: Request, context: Ctx) {
       return fail("Teacher, class, subject, day, period and academic year are required");
     }
 
-    const times = resolvePeriodTimes(period_number, asOptionalString(body.start_time), asOptionalString(body.end_time));
+    const times = await resolvePeriodTimes(period_number, asOptionalString(body.start_time), asOptionalString(body.end_time));
     const payload = {
       teacher_id,
       class_id,

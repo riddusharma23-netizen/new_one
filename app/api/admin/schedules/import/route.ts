@@ -138,7 +138,7 @@ export async function POST(request: Request) {
       }
 
       for (const item of resolved) {
-        const times = resolvePeriodTimes(item.period, item.startTime, item.endTime);
+        const times = await resolvePeriodTimes(item.period, item.startTime, item.endTime);
         await connection.execute("INSERT INTO schedules (teacher_id, class_id, subject_id, day_of_week, period_number, start_time, end_time, room, academic_year, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [item.teacherId, item.classId, item.subjectId, item.day, item.period, times.start_time, times.end_time, item.room, item.academicYear, item.status]);
         imported += 1;
       }

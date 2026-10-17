@@ -1,6 +1,7 @@
 import { query } from "@/lib/db";
 import { fail, ok } from "@/lib/http";
-import { DEFAULT_TIME_SLOTS, normalizeSchoolData, type MasterTimeSlot } from "@/lib/schedule-master";
+import { normalizeSchoolData } from "@/lib/schedule-master";
+import { getSchoolTimings } from "@/lib/school-timings";
 
 export async function GET(request: Request) {
   try {
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
     let teachers: Record<string, unknown>[] = [];
     let subjects: Record<string, unknown>[] = [];
     let entries: Record<string, unknown>[] = [];
-    const timeSlots: MasterTimeSlot[] = DEFAULT_TIME_SLOTS;
+    const timeSlots = await getSchoolTimings();
 
     try {
       classes = await query(

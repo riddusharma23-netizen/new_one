@@ -18,8 +18,7 @@ export default function DownloadButton({
       className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#B60F17] via-[#FF6A00] to-[#F8F000] px-8 py-4 font-semibold text-white shadow-xl transition-all duration-300 hover:scale-105"
     >
       <Download size={20} />
-
-      {text}
+      <span>{text}</span>
     </a>
   );
 }

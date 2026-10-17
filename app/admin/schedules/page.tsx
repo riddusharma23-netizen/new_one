@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import type { MasterScheduleData } from "@/lib/schedule-master";
+import TimingSettings from "./TimingSettings";
 
 type ApiResponse<T> = { success: boolean; message: string; data?: T };
 
@@ -163,6 +164,8 @@ export default function AdminSchedulesPage() {
             </div>
           </div>
         </header>
+
+        {data ? <TimingSettings slots={timeSlots} onSaved={() => { void loadData(); }} /> : null}
 
         <section className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-dashed border-slate-300 bg-white p-4 shadow-sm">
           <div>

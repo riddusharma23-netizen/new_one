@@ -13,41 +13,37 @@ import {
 export const admissionGuidelinesData = {
   heading: {
     badge: "ADMISSION GUIDELINES • 2026–2027",
-
     titleBlack: "Admission",
-
     titleGradient: "Process & Rules",
-
-    description:
-      "Important admission rules, fee details, attendance requirements, student benefits, merit schemes and special instructions for the academic session 2026–2027.",
+    description: "Important admission rules, fee details, attendance requirements, student benefits, merit schemes and special instructions for the academic session 2026–2027.",
   },
 
   image: "/images/admission/PG8.jpg",
 
-  // importantDates: [
-  //   {
-  //     label: "Admissions Open",
-  //     value: "01 April 2026",
-  //   },
-  //   {
-  //     label: "Classes Begin",
-  //     value: "01 April 2026",
-  //   },
-  //   {
-  //     label: "Result Declaration",
-  //     value: "30 April 2026",
-  //   },
-  //   {
-  //     label: "Uniform Admission Fee",
-  //     value: "From 01 July 2026",
-  //   },
-  // ],
+  // Isse uncomment kar dein:
+  importantDates: [
+    {
+      label: "Admissions Open",
+      value: "01 April 2026",
+    },
+    {
+      label: "Classes Begin",
+      value: "01 April 2026",
+    },
+    {
+      label: "Result Declaration",
+      value: "30 April 2026",
+    },
+    {
+      label: "Uniform Admission Fee",
+      value: "From 01 July 2026",
+    },
+  ],
 
   button: {
     text: "Apply for Admission",
     link: "/contact",
   },
-
   sections: [
     {
       id: 1,

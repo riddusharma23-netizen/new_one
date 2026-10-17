@@ -1,5 +1,6 @@
 import { query, queryOne } from "@/lib/db";
-import { PERIOD_TIMES, isDayOfWeek } from "@/lib/validation";
+import { isDayOfWeek } from "@/lib/validation";
+import { getSchoolTimings, toSeconds } from "@/lib/school-timings";
 
 export type ScheduleInput = {
   teacher_id: number;
@@ -19,10 +20,6 @@ type ExistingId = { id: number };
 export async function validateSchedule(input: ScheduleInput, excludeId?: number) {
   if (!isDayOfWeek(input.day_of_week)) {
     return "Day must be Monday through Saturday";
-  }
-
-  if (input.period_number < 1 || input.period_number > 8) {
-    return "Period must be between 1 and 8";
   }
 
   if (!input.academic_year.trim()) {
@@ -50,26 +47,34 @@ export async function validateSchedule(input: ScheduleInput, excludeId?: number)
     return "Subject does not belong to the selected class";
   }
 
+  const start = toSeconds(input.start_time ?? "");
+  const end = toSeconds(input.end_time ?? "");
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return "Lesson must have a valid start and end time";
+  const slots = await getSchoolTimings();
+  const schoolStart = Math.min(...slots.filter((slot) => slot.active).map((slot) => toSeconds(slot.start_time)));
+  const schoolEnd = Math.max(...slots.filter((slot) => slot.active).map((slot) => toSeconds(slot.end_time)));
+  if (Number.isFinite(schoolStart) && (start < schoolStart || end > schoolEnd)) return "Lesson time must be within configured school hours";
+
   const excludeSql = excludeId ? " AND id <> ?" : "";
   const excludeParams = excludeId ? [excludeId] : [];
 
   const teacherClash = await queryOne<ExistingId>(
     `SELECT id FROM schedules
-     WHERE teacher_id = ? AND day_of_week = ? AND period_number = ?
-       AND academic_year = ? AND status = 'ACTIVE'${excludeSql}
+     WHERE teacher_id = ? AND day_of_week = ? AND academic_year = ? AND status = 'ACTIVE'
+       AND start_time < ? AND end_time > ?${excludeSql}
      LIMIT 1`,
-    [input.teacher_id, input.day_of_week, input.period_number, input.academic_year, ...excludeParams]
+    [input.teacher_id, input.day_of_week, input.academic_year, input.end_time, input.start_time, ...excludeParams]
   );
   if (teacherClash) {
-    return "Teacher already has a schedule during this period";
+    return "Teacher already assigned to another class during this time";
   }
 
   const classClash = await queryOne<ExistingId>(
     `SELECT id FROM schedules
-     WHERE class_id = ? AND day_of_week = ? AND period_number = ?
-       AND academic_year = ? AND status = 'ACTIVE'${excludeSql}
+     WHERE class_id = ? AND day_of_week = ? AND academic_year = ? AND status = 'ACTIVE'
+       AND start_time < ? AND end_time > ?${excludeSql}
      LIMIT 1`,
-    [input.class_id, input.day_of_week, input.period_number, input.academic_year, ...excludeParams]
+    [input.class_id, input.day_of_week, input.academic_year, input.end_time, input.start_time, ...excludeParams]
   );
   if (classClash) {
     return "This class already has a subject during this period";
@@ -79,10 +84,10 @@ export async function validateSchedule(input: ScheduleInput, excludeId?: number)
   if (room) {
     const roomClash = await queryOne<ExistingId>(
       `SELECT id FROM schedules
-       WHERE room = ? AND day_of_week = ? AND period_number = ?
-         AND academic_year = ? AND status = 'ACTIVE'${excludeSql}
+       WHERE room = ? AND day_of_week = ? AND academic_year = ? AND status = 'ACTIVE'
+         AND start_time < ? AND end_time > ?${excludeSql}
        LIMIT 1`,
-      [room, input.day_of_week, input.period_number, input.academic_year, ...excludeParams]
+      [room, input.day_of_week, input.academic_year, input.end_time, input.start_time, ...excludeParams]
     );
     if (roomClash) {
       return "This room is already assigned during this period";
@@ -111,11 +116,12 @@ export async function validateSchedule(input: ScheduleInput, excludeId?: number)
   return null;
 }
 
-export function resolvePeriodTimes(period: number, start?: string | null, end?: string | null) {
-  const fallback = PERIOD_TIMES[period] ?? PERIOD_TIMES[1];
+export async function resolvePeriodTimes(period: number, start?: string | null, end?: string | null) {
+  const slot = (await getSchoolTimings()).find((item) => item.period_number === period && item.active);
+  if (!slot) throw new Error("Selected period is unavailable in the active school timing configuration");
   return {
-    start_time: start?.trim() || fallback.start,
-    end_time: end?.trim() || fallback.end,
+    start_time: start?.trim() || slot.start_time,
+    end_time: end?.trim() || slot.end_time,
   };
 }
 
