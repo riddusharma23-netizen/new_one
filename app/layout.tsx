@@ -10,18 +10,19 @@ export default async function RootLayout({
 }) {
   const pathname = (await headers()).get("x-pathname") ?? "";
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+  const isTimetableRoute = pathname === "/schedules" || pathname.startsWith("/schedules/");
 
   return (
     <html lang="en">
       <body>
         <div className="site-shell">
-          {!isAdminRoute ? <Navbar /> : null}
+          {!isAdminRoute && !isTimetableRoute ? <Navbar /> : null}
 
           {/* Har page ka content */}
           {children}
 
           {/* Footer */}
-          {!isAdminRoute ? <Footer /> : null}
+          {!isAdminRoute && !isTimetableRoute ? <Footer /> : null}
         </div>
 
       </body>

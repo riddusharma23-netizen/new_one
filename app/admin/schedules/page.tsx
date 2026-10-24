@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import TimetableBoard from "@/components/TimetableBoard";
 import type { MasterScheduleData } from "@/lib/schedule-master";
 import TimingSettings from "./TimingSettings";
 
@@ -32,15 +33,16 @@ export default function AdminSchedulesPage() {
   const [form, setForm] = useState<EntryForm>(EMPTY_FORM);
   const [formOpen, setFormOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState("");
 
   const classes = useMemo(() => data?.classes ?? [], [data]);
   const teachers = useMemo(() => data?.teachers ?? [], [data]);
   const timeSlots = useMemo(() => data?.time_slots ?? [], [data]);
-  const entries = useMemo(() => data?.schedule_entries ?? [], [data]);
   const formSubjects = useMemo(() => data?.subjects.filter((subject) => !form.class_id || !subject.class_id || subject.class_id === Number(form.class_id)) ?? [], [data, form.class_id]);
 
-  function openNewEntry(classId?: number, periodNumber?: number) {
-    setForm({ ...EMPTY_FORM, class_id: classId ? String(classId) : classes[0] ? String(classes[0].id) : "", period_number: periodNumber ? String(periodNumber) : "1", day_of_week: selectedDay });
+  function openNewEntry(classId?: number, periodNumber?: number, day = selectedDay) {
+    setForm({ ...EMPTY_FORM, class_id: classId ? String(classId) : classes[0] ? String(classes[0].id) : "", period_number: periodNumber ? String(periodNumber) : "1", day_of_week: day });
+    setSelectedDay(day);
     setFormOpen(true);
     setError("");
   }
@@ -62,6 +64,7 @@ export default function AdminSchedulesPage() {
       if (!response.ok || payload.success === false) throw new Error(payload.message || "Unable to save timetable entry");
       setFormOpen(false);
       setForm(EMPTY_FORM);
+      setNotice(form.id ? "Timetable entry updated successfully." : "New timetable entry added successfully.");
       await loadData();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Unable to save timetable entry.");
@@ -76,6 +79,7 @@ export default function AdminSchedulesPage() {
       const response = await fetch(`/api/admin/schedules/${id}`, { method: "DELETE" });
       const payload = (await response.json()) as ApiResponse<unknown>;
       if (!response.ok || payload.success === false) throw new Error(payload.message || "Unable to delete timetable entry");
+      setNotice("Timetable entry deleted successfully.");
       await loadData();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Unable to delete timetable entry.");
@@ -149,40 +153,40 @@ export default function AdminSchedulesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 md:px-8">
+    <main className="min-h-screen bg-[#f7fbff] px-4 py-6 text-[#123a75] md:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <header className="rounded-3xl bg-[#B60F17] px-6 py-8 text-white shadow-xl">
+        <header className="rounded-lg bg-[linear-gradient(112deg,#123e81,#285fa7,#17457f)] px-6 py-5 text-white shadow-lg">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.26em] text-red-100">Admin</p>
-              <h1 className="mt-2 text-3xl font-black md:text-4xl">Timetable Builder</h1>
+              <p className="text-xs font-black uppercase tracking-[0.26em] text-blue-100">School administration</p>
+              <h1 className="mt-1 text-2xl font-black md:text-3xl">School Timetable</h1>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => openNewEntry()} className="rounded-xl bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#B60F17]">+ Add Entry</button>
-              <button type="button" onClick={validateTimetable} className="rounded-xl bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#B60F17]">Validate</button>
-              <button type="button" className="rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white">Publish</button>
+              <button type="button" onClick={() => openNewEntry()} className="rounded-lg bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#174a91]">+ Add Entry</button>
+              <button type="button" onClick={validateTimetable} className="rounded-lg bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#174a91]">Validate</button>
+              <a href="/schedules" target="_blank" rel="noreferrer" className="rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white">View live</a>
             </div>
           </div>
         </header>
 
         {data ? <TimingSettings slots={timeSlots} onSaved={() => { void loadData(); }} /> : null}
 
-        <section className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-dashed border-slate-300 bg-white p-4 shadow-sm">
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#c7e2fa] bg-white p-4 shadow-sm">
           <div>
             <h2 className="font-bold text-slate-900">Bulk schedule import</h2>
             <p className="text-xs text-slate-500">Upload .xlsx, .xls, or .csv using teacher, class, section, and subject names or IDs.</p>
             {importMessage ? <p className="mt-2 text-sm text-green-700">{importMessage}</p> : null}
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={downloadTemplate} className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700">Download template</button>
-            <label className="cursor-pointer rounded-xl bg-slate-800 px-3 py-2 text-xs font-semibold text-white">
+            <button type="button" onClick={downloadTemplate} className="rounded-lg border border-[#c7d9ed] px-3 py-2 text-xs font-semibold text-[#174a91]">Download template</button>
+            <label className="cursor-pointer rounded-lg bg-[#214f91] px-3 py-2 text-xs font-semibold text-white">
               {importing ? "Importing..." : "Upload Excel"}
               <input type="file" accept=".xlsx,.xls,.csv" onChange={(event) => void importFile(event)} disabled={importing} className="hidden" />
             </label>
           </div>
         </section>
 
-        <section className="grid gap-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:grid-cols-4">
+        <section className="grid gap-4 rounded-lg border border-[#c7e2fa] bg-white p-4 shadow-sm md:grid-cols-4">
           <label className="text-sm font-semibold text-slate-700">
             Academic Year
             <input value={year} onChange={(event) => setYear(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2" />
@@ -212,56 +216,22 @@ export default function AdminSchedulesPage() {
         ) : null}
 
         {error ? <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div> : null}
+        {notice ? <div className="flex items-center justify-between gap-3 rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800"><span>{notice}</span><button type="button" onClick={() => setNotice("")} className="text-xs font-black uppercase underline">Dismiss</button></div> : null}
 
-        <section className="flex flex-wrap items-center gap-2 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-          <span className="mr-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500">Working day</span>
-          {DAYS.map((day) => <button key={day} type="button" onClick={() => setSelectedDay(day)} className={`rounded-xl px-3 py-2 text-xs font-black ${selectedDay === day ? "bg-[#B60F17] text-white" : "border border-slate-300 bg-white text-slate-700"}`}>{day}</button>)}
-        </section>
-
-        {loading ? <div className="rounded-3xl bg-white p-8 text-slate-600 shadow-sm ring-1 ring-slate-200">Loading timetable builder...</div> : !data ? <div className="rounded-3xl bg-white p-8 text-slate-600 shadow-sm ring-1 ring-slate-200">No timetable available.</div> : (
-          <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <table className="min-w-[900px] border-collapse text-left text-sm">
-              <thead>
-                <tr className="bg-[#f8fafc] text-slate-700">
-                  <th className="sticky left-0 z-10 border-r border-slate-200 bg-[#f8fafc] p-3 font-black">CLASS</th>
-                  {timeSlots.map((slot) => (
-                    <th key={slot.id} className="min-w-[140px] border-r border-slate-200 p-3 text-center text-[11px] font-black uppercase tracking-[0.14em]">
-                      {slot.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {classes.map((classRow) => (
-                  <tr key={classRow.id} className="border-t border-slate-200 align-top">
-                    <td className="sticky left-0 z-10 border-r border-slate-200 bg-white p-3 font-black text-slate-900">{classRow.display_name ?? classRow.name}</td>
-                    {timeSlots.map((slot) => {
-                      const matches = entries.filter((entry) => entry.class_id === classRow.id && entry.day_of_week === selectedDay && slot.period_number != null && Number(entry.period_number ?? entry.slot_order ?? 1) === Number(slot.period_number));
-                      const nonTeachingLabel = slot.slot_type === "ASSEMBLY" ? "Prayer" : slot.is_lunch ? "Lunch" : slot.is_break ? "Break" : null;
-                      return (
-                        <td key={`${classRow.id}-${slot.id}`} className="min-w-[140px] border-r border-slate-200 bg-white p-2 align-top">
-                          <div className="space-y-2">{nonTeachingLabel ? <div className={`rounded-xl border p-2 text-[11px] font-bold ${slot.is_lunch ? "border-orange-200 bg-orange-50 text-orange-800" : slot.is_break ? "border-amber-200 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>{nonTeachingLabel}<div className="mt-1 text-[10px] font-medium">{slot.start_time.slice(0, 5)}–{slot.end_time.slice(0, 5)}</div></div> : matches.length ? matches.map((entry) => (
-                            <div key={`${classRow.id}-${slot.id}-${entry.id}`} className="rounded-xl border border-slate-200 p-2 shadow-sm" style={{ backgroundColor: entry.color || "#f8fafc" }}>
-                              <div className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-600">{entry.subject_name || "Subject"}</div>
-                              <div className="mt-1 text-[11px] font-bold text-slate-900">{entry.teacher_name || "Teacher"}</div>
-                              <div className="mt-1 text-[10px] text-slate-700">{entry.room || "Room"}</div>
-                              <div className="mt-2 flex gap-2"><button type="button" onClick={() => editEntry(entry)} className="text-[10px] font-black uppercase text-slate-700 underline">Edit</button><button type="button" onClick={() => deleteEntry(entry.id)} className="text-[10px] font-black uppercase text-red-700 underline">Delete</button></div>
-                            </div>
-                          )) : <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-400">Free<button type="button" onClick={() => openNewEntry(classRow.id, slot.period_number ?? undefined)} className="mt-2 block text-[10px] font-black uppercase text-[#B60F17] underline">Add subject</button></div>}</div>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {loading ? <div className="rounded-lg border border-[#c7e2fa] bg-white p-8 text-center text-sm text-[#52709a]">Loading timetable...</div> : !data ? <div className="rounded-lg border border-[#c7e2fa] bg-white p-8 text-center text-sm text-[#52709a]">No timetable available.</div> : (
+          <TimetableBoard
+            data={data}
+            editable
+            onAdd={(classId, day, periodNumber) => openNewEntry(classId, periodNumber, day)}
+            onEdit={editEntry}
+            onDelete={(id) => void deleteEntry(id)}
+          />
         )}
 
         {formOpen ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
-            <form onSubmit={saveEntry} className="w-full max-w-2xl space-y-4 rounded-3xl bg-white p-6 shadow-2xl">
-              <div className="flex items-center justify-between"><div><p className="text-xs font-black uppercase tracking-[0.16em] text-[#B60F17]">{form.id ? "Edit timetable entry" : "New timetable entry"}</p><h2 className="mt-1 text-2xl font-black text-slate-900">Class period assignment</h2></div><button type="button" onClick={() => setFormOpen(false)} className="text-2xl font-bold text-slate-400" aria-label="Close">×</button></div>
+            <form onSubmit={saveEntry} className="w-full max-w-2xl space-y-4 rounded-2xl bg-white p-6 shadow-2xl">
+              <div className="flex items-center justify-between"><div><p className="text-xs font-black uppercase tracking-[0.16em] text-[#174a91]">{form.id ? "Edit timetable entry" : "New timetable entry"}</p><h2 className="mt-1 text-2xl font-black text-slate-900">Class period assignment</h2></div><button type="button" onClick={() => setFormOpen(false)} className="text-2xl font-bold text-slate-400" aria-label="Close">×</button></div>
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="text-sm font-bold text-slate-700">Class<select required value={form.class_id} onChange={(event) => setForm((current) => ({ ...current, class_id: event.target.value, subject_id: "" }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select class</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.display_name ?? item.name}</option>)}</select></label>
                 <label className="text-sm font-bold text-slate-700">Subject<select required value={form.subject_id} onChange={(event) => setForm((current) => ({ ...current, subject_id: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select subject</option>{formSubjects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
@@ -270,7 +240,7 @@ export default function AdminSchedulesPage() {
                 <label className="text-sm font-bold text-slate-700">Period<select required value={form.period_number} onChange={(event) => setForm((current) => ({ ...current, period_number: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2">{timeSlots.filter((slot) => slot.period_number != null).map((slot) => <option key={slot.id} value={slot.period_number!}>Period {slot.period_number} · {slot.start_time.slice(0, 5)}–{slot.end_time.slice(0, 5)}</option>)}</select></label>
                 <label className="text-sm font-bold text-slate-700">Room <span className="font-normal text-slate-400">(optional)</span><input value={form.room} onChange={(event) => setForm((current) => ({ ...current, room: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="e.g. Room 101" /></label>
               </div>
-              <div className="flex justify-end gap-3"><button type="button" onClick={() => setFormOpen(false)} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700">Cancel</button><button disabled={saving} type="submit" className="rounded-xl bg-[#B60F17] px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{saving ? "Saving..." : "Save entry"}</button></div>
+              <div className="flex justify-end gap-3"><button type="button" onClick={() => setFormOpen(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700">Cancel</button><button disabled={saving} type="submit" className="rounded-lg bg-[#214f91] px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{saving ? "Saving..." : "Save entry"}</button></div>
             </form>
           </div>
         ) : null}
