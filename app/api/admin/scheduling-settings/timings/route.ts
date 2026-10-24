@@ -2,6 +2,7 @@ import { logActivity, requireAdmin } from "@/lib/auth";
 import { fail, ok } from "@/lib/http";
 import { query } from "@/lib/db";
 import { getSchoolTimings, normalizeTimingSlots, replaceSchoolTimings } from "@/lib/school-timings";
+import { revalidatePublic } from "@/lib/revalidate";
 
 export async function GET() {
   const { session, error } = await requireAdmin();
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
     if (body.preview === true) return ok(preview, "Timing change preview ready.");
     if (body.confirm !== true) return fail("Review the affected lessons and explicitly confirm this timing change.", 409);
     await replaceSchoolTimings(slots);
+    revalidatePublic();
     await logActivity(session.id, "UPDATE", "time_slots", null, `Updated school timings; ${affected.length} active lesson(s) need review`);
     return ok({ ...preview, slots: await getSchoolTimings() }, "School timings saved. Existing lesson times were preserved for review.");
   } catch (error) { console.error(error); return fail("Unable to save school timings.", 500); }
