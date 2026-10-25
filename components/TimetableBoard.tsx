@@ -5,7 +5,7 @@ import { BookOpen, Coffee, Pencil, Plus, Trash2, UtensilsCrossed } from "lucide-
 import type { MasterScheduleData, MasterScheduleEntry, MasterTimeSlot } from "@/lib/schedule-master";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
-const CELL_COLOURS = ["#e7f3ff", "#e8faef", "#fff0df", "#e9f8ec", "#eee9ff", "#fff7dd", "#eaf3ff"];
+const CELL_COLOURS = ["#fff1e8", "#fff7d6", "#fce8e6", "#fff0de", "#fef3c7", "#f9e8df", "#fff5eb"];
 
 type Props = {
   data: MasterScheduleData;
@@ -30,7 +30,7 @@ function BreakItem({ slot }: { slot: MasterTimeSlot }) {
   const Icon = slot.slot_type === "ASSEMBLY" ? BookOpen : slot.is_lunch ? UtensilsCrossed : Coffee;
   const label = slot.slot_type === "ASSEMBLY" ? "Prayer" : slot.is_lunch ? "Lunch Break" : slot.label;
   return (
-    <div className="flex min-w-[190px] flex-1 items-center gap-3 px-5 py-2.5 text-[#174a91] sm:min-w-0">
+    <div className="flex min-w-[190px] flex-1 items-center gap-3 px-5 py-2.5 text-[#9b251e] sm:min-w-0">
       <Icon size={24} strokeWidth={2.4} aria-hidden="true" />
       <div>
         <p className="text-xs font-extrabold">{label}</p>
@@ -71,7 +71,7 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
   }
 
   if (!classes.length) {
-    return <div className="rounded-lg border border-[#b7dcfc] bg-white p-8 text-center text-sm text-[#52709a]">No classes are available for this timetable.</div>;
+    return <div className="rounded-lg border border-[#f2ddc5] bg-white p-8 text-center text-sm text-[#80594d]">No classes are available for this timetable.</div>;
   }
 
   return (
@@ -87,8 +87,8 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
               onClick={() => setSelectedClassId(String(classRow.id))}
               className={`min-w-24 shrink-0 rounded-md border px-4 py-2 text-xs font-bold transition ${
                 active
-                  ? "border-[#174a91] bg-[#214f91] text-white shadow-sm"
-                  : "border-[#d4e6f9] bg-[#f1f8ff] text-[#174a91] hover:bg-white"
+                  ? "border-[#b60f17] bg-[#b60f17] text-white shadow-sm"
+                  : "border-[#f2ddc5] bg-[#fff7ef] text-[#8e3a14] hover:border-[#f4c15a] hover:bg-[#fff0de]"
               }`}
             >
               {classRow.display_name}
@@ -100,14 +100,14 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
       {breaks.length ? (
         <section
           aria-label="Break times"
-          className="mb-2 flex divide-x divide-[#bad9f7] overflow-x-auto rounded-lg border border-[#9ed1ff] bg-[linear-gradient(90deg,#f7fcff,#eaf6ff)]"
+          className="mb-2 flex divide-x divide-[#f2ddc5] overflow-x-auto rounded-lg border border-[#f4c15a] bg-[linear-gradient(90deg,#fffaf5,#fff0de)]"
         >
           {breaks.map((slot) => <BreakItem key={slot.id} slot={slot} />)}
         </section>
       ) : null}
 
-      <section className="overflow-hidden rounded-lg border border-[#a9d7ff] bg-white shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2 bg-[linear-gradient(90deg,#1b5599,#2f72bc)] px-3 py-2 text-white">
+      <section className="overflow-hidden rounded-lg border border-[#f2c78e] bg-white shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 bg-[linear-gradient(90deg,#b60f17,#df5b00)] px-3 py-2 text-white">
           <h2 className="text-base font-extrabold">{currentClass?.display_name} Timetable</h2>
           <div className="flex items-center gap-2 text-xs font-medium">
             <span>{periods.length} Periods</span>
@@ -116,12 +116,12 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
         </div>
 
         <div className="hidden overflow-x-auto md:block">
-          <table className="min-w-[1080px] w-full border-collapse text-center text-[#123a75]">
+          <table className="min-w-[1080px] w-full border-collapse text-center text-[#542b24]">
             <thead>
-              <tr className="bg-[#edf7ff]">
-                <th className="w-[110px] border-b border-r border-[#c7e2fa] px-3 py-2 text-xs font-extrabold">Day</th>
+              <tr className="bg-[#fff3e8]">
+                <th className="w-[110px] border-b border-r border-[#f2ddc5] px-3 py-2 text-xs font-extrabold">Day</th>
                 {periods.map((slot) => (
-                  <th key={slot.id} className="min-w-[130px] border-b border-r border-[#c7e2fa] px-2 py-2 text-xs font-extrabold last:border-r-0">
+                  <th key={slot.id} className="min-w-[130px] border-b border-r border-[#f2ddc5] px-2 py-2 text-xs font-extrabold last:border-r-0">
                     <p>Period {slot.period_number}</p>
                     <p className="mt-1 text-[10px] font-medium">{displayTime(slot.start_time)} – {displayTime(slot.end_time)}</p>
                   </th>
@@ -131,14 +131,14 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
             <tbody>
               {DAYS.map((day) => (
                 <tr key={day}>
-                  <th scope="row" className="border-b border-r border-[#c7e2fa] bg-white px-3 py-2 text-left text-xs font-extrabold">{day}</th>
+                  <th scope="row" className="border-b border-r border-[#f2ddc5] bg-white px-3 py-2 text-left text-xs font-extrabold">{day}</th>
                   {periods.map((slot) => {
                     const { items, subject, teacher } = cellContent(day, slot);
                     return (
                       <td
                         key={`${day}-${slot.id}`}
-                        className="h-[66px] border-b border-r border-[#c7e2fa] px-2 py-1.5 last:border-r-0"
-                        style={{ backgroundColor: items.length ? subjectColour(subject) : "#fbfdff" }}
+                        className="h-[66px] border-b border-r border-[#f2ddc5] px-2 py-1.5 last:border-r-0"
+                        style={{ backgroundColor: items.length ? subjectColour(subject) : "#fffdfb" }}
                       >
                         {items.length ? (
                           <div>
@@ -146,7 +146,7 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
                             <p className="mt-0.5 text-[10px] font-medium">({teacher || "—"})</p>
                             {editable ? (
                               <div className="mt-1 flex justify-center gap-2">
-                                {onEdit ? <button type="button" onClick={() => onEdit(items[0])} aria-label={`Edit ${subject} on ${day}`} className="text-[10px] font-bold text-[#174a91] underline"><Pencil size={11} className="inline" /> Edit</button> : null}
+                                {onEdit ? <button type="button" onClick={() => onEdit(items[0])} aria-label={`Edit ${subject} on ${day}`} className="text-[10px] font-bold text-[#9b251e] underline"><Pencil size={11} className="inline" /> Edit</button> : null}
                                 {onDelete ? <button type="button" onClick={() => onDelete(items[0].id)} aria-label={`Delete ${subject} on ${day}`} className="text-[10px] font-bold text-red-700 underline"><Trash2 size={11} className="inline" /> Delete</button> : null}
                               </div>
                             ) : null}
@@ -155,11 +155,11 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
                           <button
                             type="button"
                             onClick={() => onAdd(currentClass.id, day, Number(slot.period_number))}
-                            className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#52709a] hover:text-[#174a91]"
+                            className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#80594d] hover:text-[#9b251e]"
                           >
                             <Plus size={12} /> Assign
                           </button>
-                        ) : <span className="text-xs text-[#94a9be]">—</span>}
+                        ) : <span className="text-xs text-[#a78a7a]">—</span>}
                       </td>
                     );
                   })}
@@ -171,14 +171,14 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
 
         <div className="space-y-2 p-2 md:hidden">
           {DAYS.map((day) => (
-            <article key={day} className="overflow-hidden rounded-md border border-[#c7e2fa]">
-              <h3 className="bg-[#edf7ff] px-3 py-1.5 text-xs font-extrabold">{day}</h3>
+            <article key={day} className="overflow-hidden rounded-md border border-[#f2ddc5]">
+              <h3 className="bg-[#fff3e8] px-3 py-1.5 text-xs font-extrabold">{day}</h3>
               {periods.map((slot) => {
                 const { items, subject, teacher } = cellContent(day, slot);
                 return (
                   <div
                     key={slot.id}
-                    className="flex items-center justify-between gap-2 border-t border-[#d8eafa] px-2 py-1.5 text-xs"
+                    className="flex items-center justify-between gap-2 border-t border-[#f2ddc5] px-2 py-1.5 text-xs"
                     style={{ backgroundColor: items.length ? subjectColour(subject) : "#ffffff" }}
                   >
                     <span className="shrink-0 text-[10px] font-semibold">P{slot.period_number} · {displayTime(slot.start_time)}</span>
@@ -192,7 +192,7 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
                             {onDelete ? <button type="button" onClick={() => onDelete(items[0].id)} className="text-[10px] font-bold text-red-700 underline">Delete</button> : null}
                           </div>
                         ) : currentClass && onAdd ? (
-                          <button type="button" onClick={() => onAdd(currentClass.id, day, Number(slot.period_number))} className="text-[10px] font-bold text-[#174a91] underline">Assign</button>
+                          <button type="button" onClick={() => onAdd(currentClass.id, day, Number(slot.period_number))} className="text-[10px] font-bold text-[#9b251e] underline">Assign</button>
                         ) : null
                       ) : null}
                     </div>

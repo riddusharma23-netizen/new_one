@@ -36,47 +36,47 @@ export default function SchedulesPage() {
   const classRange = classNames.length ? `Classes (${classNames[0]}–${classNames.at(-1)})` : "All Classes";
 
   return (
-    <main className="min-h-screen bg-[#f7fbff] pb-8 text-[#123a75]">
-      <header className="bg-[linear-gradient(112deg,#123e81,#285fa7,#17457f)] px-4 py-3.5 text-white shadow-lg sm:px-8">
+    <main className="min-h-screen bg-[#fffaf5] pb-8 text-[#542b24]">
+      <header className="bg-[linear-gradient(112deg,#951c12,#b60f17,#df5b00)] px-4 py-3.5 text-white shadow-lg sm:px-8">
         <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3.5">
             <BookOpen size={42} strokeWidth={2} aria-hidden="true" />
             <div>
               <h1 className="text-2xl font-extrabold leading-none tracking-tight sm:text-3xl">School Timetable</h1>
-              <p className="mt-1 text-xs text-blue-100 sm:text-sm">Weekly Class Schedule | {classRange}</p>
+              <p className="mt-1 text-xs text-orange-100 sm:text-sm">Weekly Class Schedule | {classRange}</p>
             </div>
           </div>
-          <p className="hidden text-xs font-medium tracking-wide text-blue-200 sm:block">Learn <span className="px-1">•</span> Grow <span className="px-1">•</span> Succeed</p>
+          <p className="hidden text-xs font-medium tracking-wide text-orange-100 sm:block">Learn <span className="px-1">•</span> Grow <span className="px-1">•</span> Succeed</p>
         </div>
       </header>
 
       <section className="mx-auto w-full max-w-[1500px] px-4 pt-3 sm:px-8">
-        {loading ? <div className="rounded-lg bg-white p-8 text-center text-sm shadow-sm">Loading timetable…</div> : null}
+        {loading ? <div className="rounded-lg border border-[#f2ddc5] bg-white p-8 text-center text-sm shadow-sm">Loading timetable…</div> : null}
         {error ? <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-5 text-sm text-red-800">{error}</div> : null}
 
         {!loading && !error && data?.classes.length ? (
           <>
             <TimetableBoard data={data} />
             <section className="mt-3 grid gap-2 sm:grid-cols-3">
-              <div className="flex items-start gap-3 rounded-lg border border-[#b7dcfc] bg-white p-3">
-                <Clock3 className="mt-0.5 shrink-0 text-[#1b5599]" size={20} aria-hidden="true" />
-                <div><h3 className="text-xs font-extrabold">Weekly schedule</h3><p className="mt-1 text-[11px] text-[#52709a]">Select a class above to see its complete weekly timetable.</p></div>
+              <div className="flex items-start gap-3 rounded-lg border border-[#f2ddc5] bg-white p-3">
+                <Clock3 className="mt-0.5 shrink-0 text-[#b60f17]" size={20} aria-hidden="true" />
+                <div><h3 className="text-xs font-extrabold">Weekly schedule</h3><p className="mt-1 text-[11px] text-[#80594d]">Select a class above to see its complete weekly timetable.</p></div>
               </div>
-              <div className="flex items-start gap-3 rounded-lg border border-[#b7dcfc] bg-white p-3">
-                <BookOpen className="mt-0.5 shrink-0 text-[#1b5599]" size={20} aria-hidden="true" />
-                <div><h3 className="text-xs font-extrabold">Subject & teacher</h3><p className="mt-1 text-[11px] text-[#52709a]">Each period shows the subject and its assigned teacher.</p></div>
+              <div className="flex items-start gap-3 rounded-lg border border-[#f2ddc5] bg-white p-3">
+                <BookOpen className="mt-0.5 shrink-0 text-[#b60f17]" size={20} aria-hidden="true" />
+                <div><h3 className="text-xs font-extrabold">Subject & teacher</h3><p className="mt-1 text-[11px] text-[#80594d]">Each period shows the subject and its assigned teacher.</p></div>
               </div>
-              <div className="flex items-start gap-3 rounded-lg border border-[#b7dcfc] bg-white p-3">
-                <Coffee className="mt-0.5 shrink-0 text-[#1b5599]" size={20} aria-hidden="true" />
-                <div><h3 className="text-xs font-extrabold">Breaks included</h3><p className="mt-1 text-[11px] text-[#52709a]">Prayer, break and lunch timings are shown above the timetable.</p></div>
+              <div className="flex items-start gap-3 rounded-lg border border-[#f2ddc5] bg-white p-3">
+                <Coffee className="mt-0.5 shrink-0 text-[#b60f17]" size={20} aria-hidden="true" />
+                <div><h3 className="text-xs font-extrabold">Breaks included</h3><p className="mt-1 text-[11px] text-[#80594d]">Prayer, break and lunch timings are shown above the timetable.</p></div>
               </div>
             </section>
-            <p className="mt-3 text-center text-[11px] text-[#52709a]">Timetable is updated by the school administration. Please check with your class teacher for changes.</p>
+            <p className="mt-3 text-center text-[11px] text-[#80594d]">Timetable is updated by the school administration. Please check with your class teacher for changes.</p>
           </>
         ) : null}
 
         {!loading && !error && (!data || !data.classes.length) ? (
-          <div className="rounded-lg border border-[#b7dcfc] bg-white p-8 text-center text-sm text-[#52709a]">No timetable has been published for this academic year.</div>
+          <div className="rounded-lg border border-[#f2ddc5] bg-white p-8 text-center text-sm text-[#80594d]">No timetable has been published for this academic year.</div>
         ) : null}
       </section>
     </main>
