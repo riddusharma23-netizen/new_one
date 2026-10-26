@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { BookOpen, Coffee, Pencil, Plus, Trash2, UtensilsCrossed } from "lucide-react";
-import type { MasterScheduleData, MasterScheduleEntry, MasterTimeSlot } from "@/lib/schedule-master";
+import { isTimetableGrade, type MasterScheduleData, type MasterScheduleEntry, type MasterTimeSlot } from "@/lib/schedule-master";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
-const CELL_COLOURS = ["#fff1e8", "#fff7d6", "#fce8e6", "#fff0de", "#fef3c7", "#f9e8df", "#fff5eb"];
+const CELL_COLOURS = ["#e5f0ff", "#e4f6ed", "#f4eaff", "#fff1dc", "#fde8e5", "#fff4df", "#fcebdc"];
 
 type Props = {
   data: MasterScheduleData;
@@ -30,7 +30,7 @@ function BreakItem({ slot }: { slot: MasterTimeSlot }) {
   const Icon = slot.slot_type === "ASSEMBLY" ? BookOpen : slot.is_lunch ? UtensilsCrossed : Coffee;
   const label = slot.slot_type === "ASSEMBLY" ? "Prayer" : slot.is_lunch ? "Lunch Break" : slot.label;
   return (
-    <div className="flex min-w-[190px] flex-1 items-center gap-3 px-5 py-2.5 text-[#9b251e] sm:min-w-0">
+    <div className="flex min-w-[190px] flex-1 items-center gap-3 px-5 py-2.5 text-[#a83213] sm:min-w-0">
       <Icon size={24} strokeWidth={2.4} aria-hidden="true" />
       <div>
         <p className="text-xs font-extrabold">{label}</p>
@@ -43,7 +43,7 @@ function BreakItem({ slot }: { slot: MasterTimeSlot }) {
 export default function TimetableBoard({ data, editable = false, onAdd, onEdit, onDelete }: Props) {
   const [selectedClassId, setSelectedClassId] = useState("");
   const classes = useMemo(
-    () => [...data.classes].sort((a, b) => a.display_name.localeCompare(b.display_name, undefined, { numeric: true })),
+    () => data.classes.filter(isTimetableGrade).sort((a, b) => a.display_name.localeCompare(b.display_name, undefined, { numeric: true })),
     [data.classes],
   );
   const slots = useMemo(
@@ -71,7 +71,7 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
   }
 
   if (!classes.length) {
-    return <div className="rounded-lg border border-[#f2ddc5] bg-white p-8 text-center text-sm text-[#80594d]">No classes are available for this timetable.</div>;
+    return <div className="rounded-lg border border-[#f2d7be] bg-white p-8 text-center text-sm text-[#80594d]">No classes from grades 6–12 are available for this timetable yet.</div>;
   }
 
   return (
@@ -88,7 +88,7 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
               className={`min-w-24 shrink-0 rounded-md border px-4 py-2 text-xs font-bold transition ${
                 active
                   ? "border-[#b60f17] bg-[#b60f17] text-white shadow-sm"
-                  : "border-[#f2ddc5] bg-[#fff7ef] text-[#8e3a14] hover:border-[#f4c15a] hover:bg-[#fff0de]"
+                  : "border-[#f2d7be] bg-white text-[#803313] hover:border-[#f4c15a] hover:bg-[#fff3e8]"
               }`}
             >
               {classRow.display_name}
@@ -100,7 +100,7 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
       {breaks.length ? (
         <section
           aria-label="Break times"
-          className="mb-2 flex divide-x divide-[#f2ddc5] overflow-x-auto rounded-lg border border-[#f4c15a] bg-[linear-gradient(90deg,#fffaf5,#fff0de)]"
+          className="mb-2 flex divide-x divide-[#f2d7be] overflow-x-auto rounded-lg border border-[#f4c15a] bg-[linear-gradient(90deg,#fffaf5,#fff0de)]"
         >
           {breaks.map((slot) => <BreakItem key={slot.id} slot={slot} />)}
         </section>

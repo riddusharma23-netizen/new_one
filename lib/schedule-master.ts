@@ -25,6 +25,11 @@ export type MasterClassRow = {
   active: boolean;
 };
 
+export function isTimetableGrade(classRow: Pick<MasterClassRow, "name" | "display_name">) {
+  const grade = Number.parseInt(classRow.name.match(/\d+/)?.[0] ?? classRow.display_name.match(/\d+/)?.[0] ?? "", 10);
+  return grade >= 6 && grade <= 12;
+}
+
 export type MasterTeacher = {
   id: number;
   name: string;

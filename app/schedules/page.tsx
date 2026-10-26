@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { BookOpen, Coffee, Clock3 } from "lucide-react";
 import TimetableBoard from "@/components/TimetableBoard";
-import type { MasterScheduleData } from "@/lib/schedule-master";
+import { SCHOOL_NAME, isTimetableGrade, type MasterScheduleData } from "@/lib/schedule-master";
 
 type ApiResponse<T> = { success: boolean; message: string; data?: T };
 const DEFAULT_YEAR = "2025-26";
@@ -32,8 +32,7 @@ export default function SchedulesPage() {
     return () => controller.abort();
   }, []);
 
-  const classNames = [...new Set((data?.classes ?? []).map((classRow) => classRow.display_name.split("-")[0]))];
-  const classRange = classNames.length ? `Classes (${classNames[0]}–${classNames.at(-1)})` : "All Classes";
+  const hasGradeClasses = (data?.classes ?? []).some(isTimetableGrade);
 
   return (
     <main className="min-h-screen bg-[#fffaf5] pb-8 text-[#542b24]">
@@ -43,7 +42,7 @@ export default function SchedulesPage() {
             <BookOpen size={42} strokeWidth={2} aria-hidden="true" />
             <div>
               <h1 className="text-2xl font-extrabold leading-none tracking-tight sm:text-3xl">School Timetable</h1>
-              <p className="mt-1 text-xs text-orange-100 sm:text-sm">Weekly Class Schedule | {classRange}</p>
+              <p className="mt-1 text-xs text-orange-100 sm:text-sm">{SCHOOL_NAME} · Classes 6–12</p>
             </div>
           </div>
           <p className="hidden text-xs font-medium tracking-wide text-orange-100 sm:block">Learn <span className="px-1">•</span> Grow <span className="px-1">•</span> Succeed</p>
@@ -75,8 +74,8 @@ export default function SchedulesPage() {
           </>
         ) : null}
 
-        {!loading && !error && (!data || !data.classes.length) ? (
-          <div className="rounded-lg border border-[#f2ddc5] bg-white p-8 text-center text-sm text-[#80594d]">No timetable has been published for this academic year.</div>
+        {!loading && !error && !hasGradeClasses ? (
+          <div className="rounded-lg border border-[#f2ddc5] bg-white p-8 text-center text-sm text-[#80594d]">No timetable is available for classes 6–12 yet. Ask school administration to configure these classes.</div>
         ) : null}
       </section>
     </main>
