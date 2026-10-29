@@ -33,10 +33,6 @@ export async function POST(request: Request) {
     const class_name = asString(body.class_name);
     const section = asString(body.section);
     const academic_year = asString(body.academic_year);
-    if (!class_name || !section || !academic_year) {
-      return fail("Class name, section and academic year are required");
-    }
-
     const result = await execute(
       `INSERT INTO classes (class_name, section, academic_year, class_teacher_id, room, status)
        VALUES (?, ?, ?, ?, ?, ?)`,
@@ -55,6 +51,6 @@ export async function POST(request: Request) {
     return ok(created, "Class created successfully", 201);
   } catch (err) {
     console.error(err);
-    return fail("Unable to create class. Class, section and year must be unique.", 409);
+    return fail("Unable to create class.", 500);
   }
 }

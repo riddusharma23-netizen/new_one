@@ -44,10 +44,6 @@ export async function POST(request: Request) {
     const body = (await request.json()) as Record<string, unknown>;
     const name = asString(body.name);
     const designation = asString(body.designation);
-    if (!name || !designation) {
-      return fail("Name and designation are required");
-    }
-
     const result = await execute(
       `INSERT INTO teachers
         (name, designation, department, subject, qualification, experience, email, phone, image, bio, staff_type, status, display_order)

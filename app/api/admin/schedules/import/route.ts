@@ -64,10 +64,6 @@ export async function POST(request: Request) {
     try {
       await connection.beginTransaction();
       const resolved: ResolvedRow[] = [];
-      const teacherSlots = new Set<string>();
-      const classSlots = new Set<string>();
-      const roomSlots = new Set<string>();
-
       for (const [index, row] of rows.entries()) {
         const rowNumber = index + 2;
         const teacherId = number(row, "teacher_id");
@@ -104,36 +100,6 @@ export async function POST(request: Request) {
           failures.push({ row: rowNumber, message: "Day, period (1-8), and academic year are required" });
           continue;
         }
-        if (subject.class_id !== selectedClassId) {
-          failures.push({ row: rowNumber, message: "Subject does not belong to the selected class" });
-          continue;
-        }
-
-        const slot = `${day}|${period}|${academicYear}`;
-        if (teacherSlots.has(`${teacher.id}|${slot}`)) {
-          failures.push({ row: rowNumber, message: "Teacher is assigned twice in this upload period" });
-          continue;
-        }
-        if (classSlots.has(`${selectedClassId}|${slot}`)) {
-          failures.push({ row: rowNumber, message: "Class is assigned twice in this upload period" });
-          continue;
-        }
-        if (room && roomSlots.has(`${room}|${slot}`)) {
-          failures.push({ row: rowNumber, message: "Room is assigned twice in this upload period" });
-          continue;
-        }
-
-        const conflictParams = [teacher.id, day, period, academicYear, selectedClassId, room];
-        const [teacherClash] = await connection.execute("SELECT id FROM schedules WHERE teacher_id = ? AND day_of_week = ? AND period_number = ? AND academic_year = ? AND status = 'ACTIVE' LIMIT 1", conflictParams.slice(0, 4));
-        const [classClash] = await connection.execute("SELECT id FROM schedules WHERE class_id = ? AND day_of_week = ? AND period_number = ? AND academic_year = ? AND status = 'ACTIVE' LIMIT 1", [selectedClassId, day, period, academicYear]);
-        const [roomClash] = room ? await connection.execute("SELECT id FROM schedules WHERE room = ? AND day_of_week = ? AND period_number = ? AND academic_year = ? AND status = 'ACTIVE' LIMIT 1", [room, day, period, academicYear]) : [[]];
-        if ((teacherClash as unknown[]).length || (classClash as unknown[]).length || (roomClash as unknown[]).length) {
-          failures.push({ row: rowNumber, message: "Teacher, class, or room has a conflict in this period" });
-          continue;
-        }
-        teacherSlots.add(`${teacher.id}|${slot}`);
-        classSlots.add(`${selectedClassId}|${slot}`);
-        if (room) roomSlots.add(`${room}|${slot}`);
         resolved.push({ teacherId: teacher.id, classId: selectedClassId, subjectId: subject.id, day, period, room, academicYear, startTime: asOptionalString(value(row, "start_time")), endTime: asOptionalString(value(row, "end_time")), status: text(row, "status") === "INACTIVE" ? "INACTIVE" : "ACTIVE" });
       }
 

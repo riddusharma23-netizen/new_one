@@ -18,10 +18,6 @@ export async function PATCH(request: Request, context: Ctx) {
     const class_name = asString(body.class_name);
     const section = asString(body.section);
     const academic_year = asString(body.academic_year);
-    if (!class_name || !section || !academic_year) {
-      return fail("Class name, section and academic year are required");
-    }
-
     const result = await execute(
       `UPDATE classes SET class_name=?, section=?, academic_year=?, class_teacher_id=?, room=?, status=? WHERE id=?`,
       [
@@ -40,7 +36,7 @@ export async function PATCH(request: Request, context: Ctx) {
     return ok(await queryOne("SELECT * FROM classes WHERE id = ?", [id]), "Class updated successfully");
   } catch (err) {
     console.error(err);
-    return fail("Unable to update class.", 409);
+    return fail("Unable to update class.", 500);
   }
 }
 

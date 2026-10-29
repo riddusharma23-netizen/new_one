@@ -488,6 +488,7 @@ export default function AboutPage() {
 
       {/* STATS */} 
 
+
 <section
   className="
   relative

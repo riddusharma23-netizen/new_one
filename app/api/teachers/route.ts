@@ -30,3 +30,5 @@ export async function GET(request: Request) {
     return fail("Unable to load teachers.", 500);
   }
 }
+
+

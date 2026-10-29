@@ -100,9 +100,9 @@ export default function AdminClassesPage() {
         <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
           <h1 className="mb-4 text-2xl font-black text-slate-900">Class Management</h1>
           <form onSubmit={submitForm} className="grid gap-4 md:grid-cols-2">
-            <input value={form.class_name} onChange={(e) => setForm({ ...form, class_name: e.target.value })} placeholder="Class name" className="rounded-xl border border-slate-300 px-3 py-2" required />
-            <input value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value })} placeholder="Section" className="rounded-xl border border-slate-300 px-3 py-2" required />
-            <input value={form.academic_year} onChange={(e) => setForm({ ...form, academic_year: e.target.value })} placeholder="Academic year" className="rounded-xl border border-slate-300 px-3 py-2" required />
+            <input value={form.class_name} onChange={(e) => setForm({ ...form, class_name: e.target.value })} placeholder="Class name" className="rounded-xl border border-slate-300 px-3 py-2" />
+            <input value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value })} placeholder="Section" className="rounded-xl border border-slate-300 px-3 py-2" />
+            <input value={form.academic_year} onChange={(e) => setForm({ ...form, academic_year: e.target.value })} placeholder="Academic year" className="rounded-xl border border-slate-300 px-3 py-2" />
             <input value={form.room} onChange={(e) => setForm({ ...form, room: e.target.value })} placeholder="Room" className="rounded-xl border border-slate-300 px-3 py-2" />
             <input value={form.class_teacher_id} onChange={(e) => setForm({ ...form, class_teacher_id: e.target.value })} placeholder="Teacher ID" type="number" className="rounded-xl border border-slate-300 px-3 py-2" />
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as "ACTIVE" | "INACTIVE" })} className="rounded-xl border border-slate-300 px-3 py-2">

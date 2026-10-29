@@ -645,79 +645,48 @@ border-[#F8F400]
       </p>
 
 
-      <div className="mt-6 space-y-8">
+     <div className="mt-6 space-y-8">
+  {[
+    {
+      title: "Email",
+      desc: "akbansal@hotmail.com",
+      icon: Mail,
+    },
+    {
+      title: "Phone",
+      desc: "+91-9910080001",
+      icon: Phone,
+    },
+  ].map((item) => {
+    const Icon = item.icon;
 
-        {[
-          {
-            title: "Email",
-            desc:
-              "akbansal@hotmail.com.",
-          },
+    return (
+      <div key={item.title} className="flex items-center gap-5">
+        <div
+          className="
+            flex h-[50px] w-[50px] shrink-0
+            items-center justify-center rounded-full
+            bg-gradient-to-r
+            from-[#B60F17] via-[#FF6A00] to-[#F8F000]
+            text-white shadow-md
+          "
+        >
+          <Icon size={24} strokeWidth={2} aria-hidden="true" />
+        </div>
 
-          {
-            title: "Phone",
-            desc:
-              "+91-9910080001.",
-          },
+        <div className="min-w-0">
+          <h3 className="text-2xl font-black">
+            {item.title}
+          </h3>
 
-         
-
-        ].map((item) => (
-
-          <div
-            key={item.title}
-
-            className="
-            flex
-            gap-5
-            "
-          >
-
-            <div
-              className="
-              min-w-[50px]
-              h-[50px]
-
-              rounded-full
-
-              bg-gradient-to-r
-             from-[#B60F17]
-        via-[#FF6A00]
-        to-[#F8F000]
-              "
-            />
-
-            <div>
-
-              <h3
-                className="
-                text-2xl
-
-                font-black
-                "
-              >
-                {item.title}
-              </h3>
-
-              <p
-                className="
-                mt-0
-
-                text-gray-600
-
-                leading-8
-                "
-              >
-                {item.desc}
-              </p>
-
-            </div>
-
-          </div>
-
-        ))}
-
+          <p className="mt-0 break-words leading-8 text-gray-600">
+            {item.desc}
+          </p>
+        </div>
       </div>
+    );
+  })}
+</div>
 
     </div>
 
@@ -775,7 +744,7 @@ border-[#F8F400]
     items-center
     "
   >
-
+   
     {/* LEFT CONTENT */}
     <div>
 
@@ -842,79 +811,48 @@ border-[#F8F400]
       >
        Narendra Kumar Bansal is a retired electronic engineer in US and now serving as President of TulsiDas Charity Org. He has a strong interest in religious and social service activities. Out of love for Lord Krishna, he loves to serve monetarily, physically, and mentally for the causes of religious and social service activities. Though he is an American citizen but he frequently visits India for long periods of time and serves poor communities.
       </p>
-  <div className="mt-6 space-y-8">
+ <div className="mt-6 space-y-8">
+  {[
+    {
+      title: "Email",
+      desc: "nkbansal@gmail.com",
+      icon: Mail,
+    },
+    {
+      title: "Phone",
+      desc: "603-818-7830 (day & evenings)",
+      icon: Phone,
+    },
+  ].map((item) => {
+    const Icon = item.icon;
 
-        {[
-          {
-            title: "Email",
-            desc:
-              "nkbansal@gmail.com",
-          },
+    return (
+      <div key={item.title} className="flex items-center gap-5">
+        <div
+          className="
+            flex h-[50px] w-[50px] shrink-0
+            items-center justify-center rounded-full
+            bg-gradient-to-r
+            from-[#B60F17] via-[#FF6A00] to-[#F8F000]
+            text-white shadow-md
+          "
+        >
+          <Icon size={24} strokeWidth={2} aria-hidden="true" />
+        </div>
 
-          {
-            title: "Phone",
-            desc:
-              "603-818-7830 (day & evenings)",
-          },
+        <div>
+          <h3 className="text-2xl font-black">
+            {item.title}
+          </h3>
 
-         
-
-        ].map((item) => (
-
-          <div
-            key={item.title}
-
-            className="
-            flex
-            gap-5
-            "
-          >
-
-            <div
-              className="
-              min-w-[50px]
-              h-[50px]
-
-              rounded-full
-
-              bg-gradient-to-r
-             from-[#B60F17]
-        via-[#FF6A00]
-        to-[#F8F000]
-              "
-            />
-
-            <div>
-
-              <h3
-                className="
-                text-2xl
-
-                font-black
-                "
-              >
-                {item.title}
-              </h3>
-
-              <p
-                className="
-                mt-0
-
-                text-gray-600
-
-                leading-8
-                "
-              >
-                {item.desc}
-              </p>
-
-            </div>
-
-          </div>
-
-        ))}
-
+          <p className="mt-0 leading-8 text-gray-600">
+            {item.desc}
+          </p>
+        </div>
       </div>
+    );
+  })}
+</div>
 
     </div>
 
@@ -1388,7 +1326,7 @@ Medical & Support Staff Layout
           text-gray-600
         "
       >
-        <Phone className="h-4 w-4 text-[#B60F17]" />
+        <Phone className="h-4 w-4 text-[#B60F17]"/>
 
         <span>
           {staff.phone}

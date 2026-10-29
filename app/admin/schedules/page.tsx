@@ -7,7 +7,6 @@ import TimingSettings from "./TimingSettings";
 
 type ApiResponse<T> = { success: boolean; message: string; data?: T };
 
-type ValidationState = { valid: boolean; issues: Array<{ code: string; message: string; scheduleId?: number }> };
 type EntryForm = {
   id?: number;
   class_id: string;
@@ -27,7 +26,6 @@ export default function AdminSchedulesPage() {
   const [error, setError] = useState("");
   const [importMessage, setImportMessage] = useState("");
   const [importing, setImporting] = useState(false);
-  const [validation, setValidation] = useState<ValidationState | null>(null);
   const [year, setYear] = useState("2025-26");
   const [selectedDay, setSelectedDay] = useState<string>(DAYS[0]);
   const [form, setForm] = useState<EntryForm>(EMPTY_FORM);
@@ -38,7 +36,7 @@ export default function AdminSchedulesPage() {
   const classes = useMemo(() => data?.classes.filter(isTimetableGrade) ?? [], [data]);
   const teachers = useMemo(() => data?.teachers ?? [], [data]);
   const timeSlots = useMemo(() => data?.time_slots ?? [], [data]);
-  const formSubjects = useMemo(() => data?.subjects.filter((subject) => !form.class_id || !subject.class_id || subject.class_id === Number(form.class_id)) ?? [], [data, form.class_id]);
+  const formSubjects = useMemo(() => data?.subjects ?? [], [data]);
 
   function openNewEntry(classId?: number, periodNumber?: number, day = selectedDay) {
     setForm({ ...EMPTY_FORM, class_id: classId ? String(classId) : classes[0] ? String(classes[0].id) : "", period_number: periodNumber ? String(periodNumber) : "1", day_of_week: day });
@@ -100,21 +98,6 @@ export default function AdminSchedulesPage() {
     }
   }, [year]);
 
-  async function validateTimetable() {
-    try {
-      const response = await fetch("/api/schedules/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ academic_year: year }),
-      });
-      const payload = (await response.json()) as ApiResponse<ValidationState>;
-      if (!response.ok || payload.success === false) throw new Error(payload.message || "Unable to validate timetable");
-      setValidation(payload.data ?? null);
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Validation failed.");
-    }
-  }
-
   useEffect(() => {
     void loadData();
   }, [loadData]);
@@ -163,7 +146,6 @@ export default function AdminSchedulesPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <button type="button" disabled={!classes.length} onClick={() => openNewEntry()} className="rounded-lg bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#b60f17] disabled:cursor-not-allowed disabled:opacity-50">+ Add Entry</button>
-              <button type="button" onClick={validateTimetable} className="rounded-lg bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#b60f17]">Validate</button>
               <a href="/schedules" target="_blank" rel="noreferrer" className="rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white">View live</a>
             </div>
           </div>
@@ -205,16 +187,6 @@ export default function AdminSchedulesPage() {
           </div>
         </section>
 
-        {validation ? (
-          <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 shadow-sm">
-            <div className="font-black uppercase tracking-[0.14em]">Validation result</div>
-            <div className="mt-2">{validation.valid ? "✓ Validation passed" : `✕ ${validation.issues.length} issue(s) found`}</div>
-            <div className="mt-2 space-y-1 text-xs">
-              {validation.issues?.length ? validation.issues.map((issue: { code: string; message: string; scheduleId?: number }, index: number) => <div key={`${issue.code}-${issue.scheduleId ?? index}`}>• {issue.message}</div>) : <div>• No conflicts detected.</div>}
-            </div>
-          </section>
-        ) : null}
-
         {error ? <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div> : null}
         {notice ? <div className="flex items-center justify-between gap-3 rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800"><span>{notice}</span><button type="button" onClick={() => setNotice("")} className="text-xs font-black uppercase underline">Dismiss</button></div> : null}
 
@@ -233,11 +205,11 @@ export default function AdminSchedulesPage() {
             <form onSubmit={saveEntry} className="w-full max-w-2xl space-y-4 rounded-2xl bg-white p-6 shadow-2xl">
               <div className="flex items-center justify-between"><div><p className="text-xs font-black uppercase tracking-[0.16em] text-[#b60f17]">{form.id ? "Edit timetable entry" : "New timetable entry"}</p><h2 className="mt-1 text-2xl font-black text-slate-900">Class period assignment</h2></div><button type="button" onClick={() => setFormOpen(false)} className="text-2xl font-bold text-slate-400" aria-label="Close">×</button></div>
               <div className="grid gap-4 md:grid-cols-2">
-                <label className="text-sm font-bold text-slate-700">Class<select required value={form.class_id} onChange={(event) => setForm((current) => ({ ...current, class_id: event.target.value, subject_id: "" }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select class</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.display_name ?? item.name}</option>)}</select></label>
-                <label className="text-sm font-bold text-slate-700">Subject<select required value={form.subject_id} onChange={(event) => setForm((current) => ({ ...current, subject_id: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select subject</option>{formSubjects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-                <label className="text-sm font-bold text-slate-700">Teacher<select required value={form.teacher_id} onChange={(event) => setForm((current) => ({ ...current, teacher_id: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select teacher</option>{teachers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-                <label className="text-sm font-bold text-slate-700">Day<select required value={form.day_of_week} onChange={(event) => setForm((current) => ({ ...current, day_of_week: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2">{DAYS.map((day) => <option key={day}>{day}</option>)}</select></label>
-                <label className="text-sm font-bold text-slate-700">Period<select required value={form.period_number} onChange={(event) => setForm((current) => ({ ...current, period_number: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2">{timeSlots.filter((slot) => slot.period_number != null).map((slot) => <option key={slot.id} value={slot.period_number!}>Period {slot.period_number} · {slot.start_time.slice(0, 5)}–{slot.end_time.slice(0, 5)}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Class<select value={form.class_id} onChange={(event) => setForm((current) => ({ ...current, class_id: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select class</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.display_name ?? item.name}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Subject<select value={form.subject_id} onChange={(event) => setForm((current) => ({ ...current, subject_id: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select subject</option>{formSubjects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Teacher<select value={form.teacher_id} onChange={(event) => setForm((current) => ({ ...current, teacher_id: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select teacher</option>{teachers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Day<select value={form.day_of_week} onChange={(event) => setForm((current) => ({ ...current, day_of_week: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2">{DAYS.map((day) => <option key={day}>{day}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Period<select value={form.period_number} onChange={(event) => setForm((current) => ({ ...current, period_number: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2">{timeSlots.filter((slot) => slot.period_number != null).map((slot) => <option key={slot.id} value={slot.period_number!}>Period {slot.period_number} · {slot.start_time.slice(0, 5)}–{slot.end_time.slice(0, 5)}</option>)}</select></label>
                 <label className="text-sm font-bold text-slate-700">Room <span className="font-normal text-slate-400">(optional)</span><input value={form.room} onChange={(event) => setForm((current) => ({ ...current, room: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="e.g. Room 101" /></label>
               </div>
               <div className="flex justify-end gap-3"><button type="button" onClick={() => setFormOpen(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700">Cancel</button><button disabled={saving} type="submit" className="rounded-lg bg-[#b60f17] px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{saving ? "Saving..." : "Save entry"}</button></div>

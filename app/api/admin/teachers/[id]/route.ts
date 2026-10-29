@@ -30,10 +30,6 @@ export async function PATCH(request: Request, context: Ctx) {
     const body = (await request.json()) as Record<string, unknown>;
     const name = asString(body.name);
     const designation = asString(body.designation);
-    if (!name || !designation) {
-      return fail("Name and designation are required");
-    }
-
     await execute(
       `UPDATE teachers SET
         name=?, designation=?, department=?, subject=?, qualification=?, experience=?,

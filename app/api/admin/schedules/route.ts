@@ -3,7 +3,7 @@ import { logActivity, requireAdmin } from "@/lib/auth";
 import { execute, queryOne } from "@/lib/db";
 import { paginate } from "@/lib/list";
 import { revalidatePublic } from "@/lib/revalidate";
-import { resolvePeriodTimes, validateSchedule } from "@/lib/schedule-conflicts";
+import { resolvePeriodTimes } from "@/lib/schedule-conflicts";
 import { asInteger, asOptionalString, asString } from "@/lib/validation";
 
 export async function GET(request: Request) {
@@ -63,11 +63,7 @@ export async function POST(request: Request) {
     const day_of_week = asString(body.day_of_week);
     const academic_year = asString(body.academic_year);
 
-    if (!teacher_id || !class_id || !subject_id || !period_number || !day_of_week || !academic_year) {
-      return fail("Teacher, class, subject, day, period and academic year are required");
-    }
-
-    const times = await resolvePeriodTimes(period_number, asOptionalString(body.start_time), asOptionalString(body.end_time));
+    const times = await resolvePeriodTimes(period_number ?? 0, asOptionalString(body.start_time), asOptionalString(body.end_time));
     const payload = {
       teacher_id,
       class_id,
@@ -80,9 +76,6 @@ export async function POST(request: Request) {
       academic_year,
       status: asString(body.status) === "INACTIVE" ? "INACTIVE" : "ACTIVE",
     };
-
-    const conflict = await validateSchedule(payload);
-    if (conflict) return fail(conflict, 409);
 
     const result = await execute(
       `INSERT INTO schedules

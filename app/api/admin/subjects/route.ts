@@ -34,10 +34,6 @@ export async function POST(request: Request) {
     const subject_name = asString(body.subject_name);
     const subject_code = asString(body.subject_code);
     const class_id = asInteger(body.class_id);
-    if (!subject_name || !subject_code || !class_id) {
-      return fail("Subject name, code and class are required");
-    }
-
     const result = await execute(
       `INSERT INTO subjects (subject_name, subject_code, class_id, teacher_id, weekly_periods, status)
        VALUES (?, ?, ?, ?, ?, ?)`,
@@ -55,6 +51,6 @@ export async function POST(request: Request) {
     return ok(await queryOne("SELECT * FROM subjects WHERE id = ?", [result.insertId]), "Subject created successfully", 201);
   } catch (err) {
     console.error(err);
-    return fail("Unable to create subject. Code must be unique for the class.", 409);
+    return fail("Unable to create subject.", 500);
   }
 }

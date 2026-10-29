@@ -107,11 +107,11 @@ export default function AdminSubjectsPage() {
         <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
           <h1 className="mb-4 text-2xl font-black text-slate-900">Subject Management</h1>
           <form onSubmit={submitForm} className="grid gap-4 md:grid-cols-2">
-            <input value={form.subject_name} onChange={(e) => setForm({ ...form, subject_name: e.target.value })} placeholder="Subject name" className="rounded-xl border border-slate-300 px-3 py-2" required />
-            <input value={form.subject_code} onChange={(e) => setForm({ ...form, subject_code: e.target.value })} placeholder="Subject code" className="rounded-xl border border-slate-300 px-3 py-2" required />
-            <input value={form.class_id} type="number" onChange={(e) => setForm({ ...form, class_id: e.target.value })} placeholder="Class ID" className="rounded-xl border border-slate-300 px-3 py-2" required />
+            <input value={form.subject_name} onChange={(e) => setForm({ ...form, subject_name: e.target.value })} placeholder="Subject name" className="rounded-xl border border-slate-300 px-3 py-2" />
+            <input value={form.subject_code} onChange={(e) => setForm({ ...form, subject_code: e.target.value })} placeholder="Subject code" className="rounded-xl border border-slate-300 px-3 py-2" />
+            <input value={form.class_id} type="number" onChange={(e) => setForm({ ...form, class_id: e.target.value })} placeholder="Class ID" className="rounded-xl border border-slate-300 px-3 py-2" />
             <input value={form.teacher_id} type="number" onChange={(e) => setForm({ ...form, teacher_id: e.target.value })} placeholder="Teacher ID" className="rounded-xl border border-slate-300 px-3 py-2" />
-            <input value={form.weekly_periods} type="number" onChange={(e) => setForm({ ...form, weekly_periods: e.target.value })} placeholder="Weekly periods" className="rounded-xl border border-slate-300 px-3 py-2" min={1} />
+            <input value={form.weekly_periods} type="number" onChange={(e) => setForm({ ...form, weekly_periods: e.target.value })} placeholder="Weekly periods" className="rounded-xl border border-slate-300 px-3 py-2" />
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as "ACTIVE" | "INACTIVE" })} className="rounded-xl border border-slate-300 px-3 py-2">
               <option value="ACTIVE">Active</option>
               <option value="INACTIVE">Inactive</option>

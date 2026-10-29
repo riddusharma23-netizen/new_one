@@ -161,13 +161,13 @@ export default function AdminTeachersPage({ staffType = "TEACHER" }: { staffType
           </div>
 
           <form onSubmit={submitForm} className="grid gap-4 md:grid-cols-2">
-            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name" className="rounded-xl border border-slate-300 px-3 py-2" required />
-            <input value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} placeholder="Designation" className="rounded-xl border border-slate-300 px-3 py-2" required />
+            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name" className="rounded-xl border border-slate-300 px-3 py-2" />
+            <input value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} placeholder="Designation" className="rounded-xl border border-slate-300 px-3 py-2" />
             <input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} placeholder={staffType === "SUPPORT" ? "Category / section (e.g. Medical)" : "Department"} className="rounded-xl border border-slate-300 px-3 py-2" />
             {staffType === "TEACHER" ? <input value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} placeholder="Subject" className="rounded-xl border border-slate-300 px-3 py-2" /> : null}
             <input value={form.qualification} onChange={(e) => setForm({ ...form, qualification: e.target.value })} placeholder="Qualification" className="rounded-xl border border-slate-300 px-3 py-2" />
             <input value={form.experience} onChange={(e) => setForm({ ...form, experience: e.target.value })} placeholder="Experience" className="rounded-xl border border-slate-300 px-3 py-2" />
-            <input value={form.email} type="email" onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" className="rounded-xl border border-slate-300 px-3 py-2" />
+            <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" className="rounded-xl border border-slate-300 px-3 py-2" />
             <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" className="rounded-xl border border-slate-300 px-3 py-2" />
             <div className="grid gap-2 md:col-span-2 md:grid-cols-[1fr_auto]">
               <input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} placeholder="Image path or choose a file" className="rounded-xl border border-slate-300 px-3 py-2" />

@@ -76,7 +76,6 @@ CREATE TABLE classes (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_class_section_year (class_name, section, academic_year),
   KEY idx_classes_status (status),
   CONSTRAINT fk_classes_teacher
     FOREIGN KEY (class_teacher_id) REFERENCES teachers (id)
@@ -94,7 +93,6 @@ CREATE TABLE subjects (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_subject_code_class (subject_code, class_id),
   KEY idx_subjects_status (status),
   CONSTRAINT fk_subjects_class
     FOREIGN KEY (class_id) REFERENCES classes (id)
