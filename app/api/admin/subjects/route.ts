@@ -3,7 +3,7 @@ import { logActivity, requireAdmin } from "@/lib/auth";
 import { execute, queryOne } from "@/lib/db";
 import { paginate } from "@/lib/list";
 import { revalidatePublic } from "@/lib/revalidate";
-import { asInteger, asString } from "@/lib/validation";
+import { asInteger, asOptionalString, asString } from "@/lib/validation";
 
 export async function GET(request: Request) {
   const { session, error } = await requireAdmin();
@@ -35,8 +35,8 @@ export async function POST(request: Request) {
     const subject_code = asString(body.subject_code);
     const class_id = asInteger(body.class_id);
     const result = await execute(
-      `INSERT INTO subjects (subject_name, subject_code, class_id, teacher_id, weekly_periods, status)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO subjects (subject_name, subject_code, class_id, teacher_id, weekly_periods, status, category)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         subject_name,
         subject_code,
@@ -44,6 +44,7 @@ export async function POST(request: Request) {
         asInteger(body.teacher_id),
         asInteger(body.weekly_periods) ?? 1,
         asString(body.status) === "INACTIVE" ? "INACTIVE" : "ACTIVE",
+        asOptionalString(body.category),
       ]
     );
     await logActivity(session.id, "CREATE", "subjects", result.insertId, `Created subject ${subject_name}`);

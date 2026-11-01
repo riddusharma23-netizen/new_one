@@ -1,33 +1,25 @@
-CREATE DATABASE IF NOT EXISTS champidevi
+-- =====================================================================
+-- Smt. Champi Devi Inter College - database schema (MySQL 8 / InnoDB)
+-- Safe to re-run: every table uses CREATE TABLE IF NOT EXISTS.
+-- For changes on an existing database, write a migration (ALTER TABLE).
+--
+-- NOTE: the old table `groups` is now `class_groups`, because GROUPS is a
+-- reserved word in MySQL 8.0.2+ and broke the old script.
+-- Update any Node.js queries that referenced `groups`.
+-- =====================================================================
+
+CREATE DATABASE IF NOT EXISTS cdic
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE champidevi;
+USE cdic;
 
 SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS activity_logs;
-DROP TABLE IF EXISTS result_subjects;
-DROP TABLE IF EXISTS results;
-DROP TABLE IF EXISTS students;
-DROP TABLE IF EXISTS enquiries;
-DROP TABLE IF EXISTS schedules;
-DROP TABLE IF EXISTS subjects;
-DROP TABLE IF EXISTS classes;
-DROP TABLE IF EXISTS gallery;
-DROP TABLE IF EXISTS blogs;
-DROP TABLE IF EXISTS events;
-DROP TABLE IF EXISTS departments;
-DROP TABLE IF EXISTS facilities;
-DROP TABLE IF EXISTS laboratories;
-DROP TABLE IF EXISTS teachers;
-DROP TABLE IF EXISTS settings;
-DROP TABLE IF EXISTS admins;
-
-SET FOREIGN_KEY_CHECKS = 1;
-
-CREATE TABLE admins (
+-- ---------------------------------------------------------------------
+-- Auth / admin
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS admins (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(120) NOT NULL,
   email VARCHAR(190) NOT NULL,
@@ -42,7 +34,33 @@ CREATE TABLE admins (
   KEY idx_admins_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE teachers (
+CREATE TABLE IF NOT EXISTS settings (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  setting_key VARCHAR(120) NOT NULL,
+  setting_value TEXT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_settings_key (setting_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- Academic structure
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS academic_years (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(20) NOT NULL,
+  start_date DATE NULL,
+  end_date DATE NULL,
+  status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_academic_year_name (name),
+  KEY idx_academic_years_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS teachers (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(160) NOT NULL,
   designation VARCHAR(160) NOT NULL,
@@ -62,10 +80,11 @@ CREATE TABLE teachers (
   PRIMARY KEY (id),
   KEY idx_teachers_status (status),
   KEY idx_teachers_name (name),
-  KEY idx_teachers_type (staff_type)
+  KEY idx_teachers_type (staff_type),
+  KEY idx_teachers_order (display_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE classes (
+CREATE TABLE IF NOT EXISTS classes (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   class_name VARCHAR(40) NOT NULL,
   section VARCHAR(20) NOT NULL,
@@ -76,13 +95,14 @@ CREATE TABLE classes (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
+  UNIQUE KEY uq_classes_name_section_year (class_name, section, academic_year),
   KEY idx_classes_status (status),
   CONSTRAINT fk_classes_teacher
     FOREIGN KEY (class_teacher_id) REFERENCES teachers (id)
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE subjects (
+CREATE TABLE IF NOT EXISTS subjects (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   subject_name VARCHAR(120) NOT NULL,
   subject_code VARCHAR(40) NOT NULL,
@@ -93,7 +113,10 @@ CREATE TABLE subjects (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
+  UNIQUE KEY uq_subjects_code (subject_code),
   KEY idx_subjects_status (status),
+  KEY idx_subjects_class (class_id),
+  KEY idx_subjects_teacher (teacher_id),
   CONSTRAINT fk_subjects_class
     FOREIGN KEY (class_id) REFERENCES classes (id)
     ON DELETE CASCADE ON UPDATE CASCADE,
@@ -102,20 +125,8 @@ CREATE TABLE subjects (
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE academic_years (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  name VARCHAR(20) NOT NULL,
-  start_date DATE NULL,
-  end_date DATE NULL,
-  status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_academic_year_name (name),
-  KEY idx_academic_years_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE groups (
+-- Renamed from `groups` (reserved word in MySQL 8).
+CREATE TABLE IF NOT EXISTS class_groups (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(120) NOT NULL,
   class_id INT UNSIGNED NOT NULL,
@@ -124,13 +135,13 @@ CREATE TABLE groups (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  KEY idx_groups_class (class_id),
-  CONSTRAINT fk_groups_class
+  KEY idx_class_groups_class (class_id),
+  CONSTRAINT fk_class_groups_class
     FOREIGN KEY (class_id) REFERENCES classes (id)
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE rooms (
+CREATE TABLE IF NOT EXISTS rooms (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(80) NOT NULL,
   room_type VARCHAR(40) NOT NULL DEFAULT 'CLASSROOM',
@@ -142,7 +153,7 @@ CREATE TABLE rooms (
   KEY idx_rooms_active (active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE time_slots (
+CREATE TABLE IF NOT EXISTS time_slots (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   label VARCHAR(120) NOT NULL,
   start_time TIME NOT NULL,
@@ -159,7 +170,13 @@ CREATE TABLE time_slots (
   KEY idx_time_slots_status (active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE schedules (
+-- ---------------------------------------------------------------------
+-- Timetable
+-- ---------------------------------------------------------------------
+-- Simple weekly timetable (period based).
+-- Clash checks (same teacher / class / room in the same period) are done
+-- in the API; these composite indexes make those checks fast.
+CREATE TABLE IF NOT EXISTS schedules (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   teacher_id INT UNSIGNED NOT NULL,
   class_id INT UNSIGNED NOT NULL,
@@ -177,6 +194,7 @@ CREATE TABLE schedules (
   KEY idx_schedules_teacher (teacher_id, day_of_week, period_number, academic_year, status),
   KEY idx_schedules_class (class_id, day_of_week, period_number, academic_year, status),
   KEY idx_schedules_room (room, day_of_week, period_number, academic_year, status),
+  KEY idx_schedules_subject (subject_id),
   KEY idx_schedules_year (academic_year),
   CONSTRAINT fk_schedules_teacher
     FOREIGN KEY (teacher_id) REFERENCES teachers (id)
@@ -189,7 +207,8 @@ CREATE TABLE schedules (
     ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE schedule_entries (
+-- Advanced timetable (time-slot based, supports breaks / lunch / activities).
+CREATE TABLE IF NOT EXISTS schedule_entries (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   academic_year_id INT UNSIGNED NULL,
   class_id INT UNSIGNED NULL,
@@ -213,6 +232,7 @@ CREATE TABLE schedule_entries (
   KEY idx_schedule_entries_class_time (class_id, day_of_week, time_slot_id),
   KEY idx_schedule_entries_teacher_time (teacher_id, day_of_week, time_slot_id),
   KEY idx_schedule_entries_room_time (room_id, day_of_week, time_slot_id),
+  KEY idx_schedule_entries_status (status),
   CONSTRAINT fk_schedule_entries_academic_year
     FOREIGN KEY (academic_year_id) REFERENCES academic_years (id)
     ON DELETE SET NULL ON UPDATE CASCADE,
@@ -220,7 +240,7 @@ CREATE TABLE schedule_entries (
     FOREIGN KEY (class_id) REFERENCES classes (id)
     ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT fk_schedule_entries_group
-    FOREIGN KEY (group_id) REFERENCES groups (id)
+    FOREIGN KEY (group_id) REFERENCES class_groups (id)
     ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT fk_schedule_entries_subject
     FOREIGN KEY (subject_id) REFERENCES subjects (id)
@@ -233,10 +253,19 @@ CREATE TABLE schedule_entries (
     ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT fk_schedule_entries_time_slot
     FOREIGN KEY (time_slot_id) REFERENCES time_slots (id)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT fk_schedule_entries_start_slot
+    FOREIGN KEY (start_slot_id) REFERENCES time_slots (id)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT fk_schedule_entries_end_slot
+    FOREIGN KEY (end_slot_id) REFERENCES time_slots (id)
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE gallery (
+-- ---------------------------------------------------------------------
+-- Public website content
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS gallery (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   title VARCHAR(200) NOT NULL,
   description TEXT NULL,
@@ -253,7 +282,7 @@ CREATE TABLE gallery (
   KEY idx_gallery_order (display_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE blogs (
+CREATE TABLE IF NOT EXISTS blogs (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   title VARCHAR(220) NOT NULL,
   slug VARCHAR(220) NOT NULL,
@@ -274,7 +303,7 @@ CREATE TABLE blogs (
   KEY idx_blogs_published (published_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS events (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   title VARCHAR(220) NOT NULL,
   description TEXT NULL,
@@ -291,7 +320,7 @@ CREATE TABLE events (
   KEY idx_events_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE departments (
+CREATE TABLE IF NOT EXISTS departments (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(160) NOT NULL,
   slug VARCHAR(160) NOT NULL,
@@ -309,7 +338,7 @@ CREATE TABLE departments (
   KEY idx_departments_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE facilities (
+CREATE TABLE IF NOT EXISTS facilities (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(160) NOT NULL,
   slug VARCHAR(160) NOT NULL,
@@ -326,7 +355,7 @@ CREATE TABLE facilities (
   KEY idx_facilities_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE laboratories (
+CREATE TABLE IF NOT EXISTS laboratories (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(160) NOT NULL,
   slug VARCHAR(160) NOT NULL,
@@ -343,7 +372,25 @@ CREATE TABLE laboratories (
   KEY idx_laboratories_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE students (
+CREATE TABLE IF NOT EXISTS enquiries (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(160) NOT NULL,
+  email VARCHAR(190) NOT NULL,
+  phone VARCHAR(40) NULL,
+  subject VARCHAR(200) NULL,
+  message TEXT NOT NULL,
+  status ENUM('PENDING', 'READ', 'RESOLVED') NOT NULL DEFAULT 'PENDING',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_enquiries_status (status),
+  KEY idx_enquiries_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- Students & results
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS students (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   student_name VARCHAR(160) NOT NULL,
   father_name VARCHAR(160) NULL,
@@ -359,12 +406,13 @@ CREATE TABLE students (
   PRIMARY KEY (id),
   UNIQUE KEY uq_student_roll_session (roll_no, session),
   KEY idx_students_name (student_name),
+  KEY idx_students_class (class_id),
   CONSTRAINT fk_students_class
     FOREIGN KEY (class_id) REFERENCES classes (id)
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE results (
+CREATE TABLE IF NOT EXISTS results (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   student_id INT UNSIGNED NOT NULL,
   session VARCHAR(20) NOT NULL,
@@ -379,7 +427,7 @@ CREATE TABLE results (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE result_subjects (
+CREATE TABLE IF NOT EXISTS result_subjects (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   result_id INT UNSIGNED NOT NULL,
   subject VARCHAR(120) NOT NULL,
@@ -393,32 +441,10 @@ CREATE TABLE result_subjects (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE enquiries (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  name VARCHAR(160) NOT NULL,
-  email VARCHAR(190) NOT NULL,
-  phone VARCHAR(40) NULL,
-  subject VARCHAR(200) NULL,
-  message TEXT NOT NULL,
-  status ENUM('PENDING', 'READ', 'RESOLVED') NOT NULL DEFAULT 'PENDING',
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  KEY idx_enquiries_status (status),
-  KEY idx_enquiries_created (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE settings (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  setting_key VARCHAR(120) NOT NULL,
-  setting_value TEXT NULL,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_settings_key (setting_key)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE activity_logs (
+-- ---------------------------------------------------------------------
+-- Audit
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS activity_logs (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   admin_id INT UNSIGNED NULL,
   action VARCHAR(80) NOT NULL,
@@ -428,6 +454,7 @@ CREATE TABLE activity_logs (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_activity_created (created_at),
+  KEY idx_activity_admin (admin_id),
   CONSTRAINT fk_activity_admin
     FOREIGN KEY (admin_id) REFERENCES admins (id)
     ON DELETE SET NULL ON UPDATE CASCADE

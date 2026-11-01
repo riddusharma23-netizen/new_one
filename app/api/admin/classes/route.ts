@@ -34,8 +34,8 @@ export async function POST(request: Request) {
     const section = asString(body.section);
     const academic_year = asString(body.academic_year);
     const result = await execute(
-      `INSERT INTO classes (class_name, section, academic_year, class_teacher_id, room, status)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO classes (class_name, section, academic_year, class_teacher_id, room, status, capacity, category)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         class_name,
         section,
@@ -43,6 +43,8 @@ export async function POST(request: Request) {
         asInteger(body.class_teacher_id),
         asOptionalString(body.room),
         asString(body.status) === "INACTIVE" ? "INACTIVE" : "ACTIVE",
+        asInteger(body.capacity),
+        asOptionalString(body.category),
       ]
     );
     const created = await queryOne("SELECT * FROM classes WHERE id = ?", [result.insertId]);

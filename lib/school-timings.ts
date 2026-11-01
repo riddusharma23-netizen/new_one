@@ -1,5 +1,5 @@
 import { getPool, query } from "@/lib/db";
-import { DEFAULT_TIME_SLOTS, type MasterTimeSlot } from "@/lib/schedule-master";
+import type { MasterTimeSlot } from "@/lib/schedule-master";
 
 export type EditableTimeSlot = Omit<MasterTimeSlot, "id"> & { id?: number };
 
@@ -47,16 +47,13 @@ export function normalizeTimingSlots(input: unknown): { slots: EditableTimeSlot[
 }
 
 export async function getSchoolTimings(): Promise<MasterTimeSlot[]> {
-  try {
-    const rows = await query<Record<string, unknown>>(`SELECT id, label, start_time, end_time, slot_order, slot_type, is_break, is_lunch, active FROM time_slots ORDER BY slot_order, id`);
-    if (!rows.length) return DEFAULT_TIME_SLOTS;
-    let period = 0;
-    return rows.map((row) => {
-      const type = String(row.slot_type || "REGULAR") as MasterTimeSlot["slot_type"];
-      const active = String(row.active) !== "INACTIVE" && row.active !== false;
-      return { id: Number(row.id), label: String(row.label), start_time: String(row.start_time), end_time: String(row.end_time), slot_order: Number(row.slot_order), period_number: type === "REGULAR" && active ? ++period : null, slot_type: type, is_break: Boolean(row.is_break), is_lunch: Boolean(row.is_lunch), active };
-    });
-  } catch { return DEFAULT_TIME_SLOTS; }
+  const rows = await query<Record<string, unknown>>(`SELECT id, label, start_time, end_time, slot_order, slot_type, is_break, is_lunch, active FROM time_slots ORDER BY slot_order, id`);
+  let period = 0;
+  return rows.map((row) => {
+    const type = String(row.slot_type || "REGULAR") as MasterTimeSlot["slot_type"];
+    const active = String(row.active) !== "INACTIVE" && row.active !== false;
+    return { id: Number(row.id), label: String(row.label), start_time: String(row.start_time), end_time: String(row.end_time), slot_order: Number(row.slot_order), period_number: type === "REGULAR" && active ? ++period : null, slot_type: type, is_break: Boolean(row.is_break), is_lunch: Boolean(row.is_lunch), active };
+  });
 }
 
 export async function replaceSchoolTimings(slots: EditableTimeSlot[]) {

@@ -16,7 +16,7 @@ export async function paginate<T>(options: {
   const url = new URL(options.request.url);
   const q = url.searchParams.get("q")?.trim() ?? "";
   const page = parsePositiveInt(url.searchParams.get("page"), 1);
-  const pageSize = Math.min(parsePositiveInt(url.searchParams.get("pageSize"), 10), 50);
+  const pageSize = Math.min(parsePositiveInt(url.searchParams.get("pageSize"), 10), 200);
   const status = url.searchParams.get("status")?.trim() ?? "";
 
   const where = [options.defaultWhere ?? "1=1", ...(options.extraWhere ?? [])];

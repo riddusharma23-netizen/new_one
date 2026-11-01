@@ -39,7 +39,7 @@ export type AdminRow = {
 };
 
 function secret() {
-  return process.env.AUTH_SECRET || "";
+  return process.env.AUTH_SECRET || process.env.JWT_SECRET || "";
 }
 
 export async function hashPassword(password: string) {
@@ -178,6 +178,12 @@ export async function countTable(table: string, where = "1=1", params: Array<str
     "students",
     "enquiries",
     "schedules",
+    "rooms",
+    "groups",
+    "time_slots",
+    "timetable_versions",
+    "schedule_groups",
+    "schedule_assignments",
   ]);
   if (!allowed.has(table)) {
     throw new Error("Invalid table");

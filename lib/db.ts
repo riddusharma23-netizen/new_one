@@ -29,7 +29,7 @@ function createPool() {
   return mysql.createPool({
     host: requiredEnv("DB_HOST"),
     user: requiredEnv("DB_USER"),
-    password: process.env.DB_PASSWORD ?? "",
+    password: process.env.DB_PASSWORD ?? process.env.DB_PASS ?? "",
     database: requiredEnv("DB_NAME"),
     port: Number(process.env.DB_PORT || 3306),
     waitForConnections: true,
@@ -61,6 +61,21 @@ export async function queryOne<T>(sql: string, params: DbParam = []): Promise<T 
 export async function execute(sql: string, params: DbParam = []): Promise<mysql.ResultSetHeader> {
   const [result] = await getPool().execute(sql, params as never);
   return result as mysql.ResultSetHeader;
+}
+
+export async function withTransaction<T>(work: (connection: mysql.PoolConnection) => Promise<T>) {
+  const connection = await getPool().getConnection();
+  try {
+    await connection.beginTransaction();
+    const result = await work(connection);
+    await connection.commit();
+    return result;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 }
 
 const db = {

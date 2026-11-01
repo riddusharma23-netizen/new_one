@@ -46,8 +46,8 @@ export async function POST(request: Request) {
     const designation = asString(body.designation);
     const result = await execute(
       `INSERT INTO teachers
-        (name, designation, department, subject, qualification, experience, email, phone, image, bio, staff_type, status, display_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (name, designation, department, subject, qualification, experience, email, phone, image, bio, staff_type, status, display_order, short_name, teacher_code, availability_notes)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         name,
         designation,
@@ -62,6 +62,9 @@ export async function POST(request: Request) {
         asString(body.staff_type) === "SUPPORT" ? "SUPPORT" : "TEACHER",
         asString(body.status) === "INACTIVE" ? "INACTIVE" : "ACTIVE",
         Number(body.display_order) || 0,
+        asOptionalString(body.short_name),
+        asOptionalString(body.teacher_code),
+        asOptionalString(body.availability_notes),
       ]
     );
 

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import TimetableBoard from "@/components/TimetableBoard";
 import { isTimetableGrade, type MasterScheduleData } from "@/lib/schedule-master";
 import TimingSettings from "./TimingSettings";
+import TimetableBuilder from "./TimetableBuilder";
 
 type ApiResponse<T> = { success: boolean; message: string; data?: T };
 
@@ -21,6 +22,7 @@ const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 const EMPTY_FORM: EntryForm = { class_id: "", subject_id: "", teacher_id: "", day_of_week: "Monday", period_number: "1", room: "" };
 
 export default function AdminSchedulesPage() {
+  const [mode, setMode] = useState<"builder" | "legacy">("builder");
   const [data, setData] = useState<MasterScheduleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -99,8 +101,8 @@ export default function AdminSchedulesPage() {
   }, [year]);
 
   useEffect(() => {
-    void loadData();
-  }, [loadData]);
+    if (mode === "legacy") void loadData();
+  }, [loadData, mode]);
 
   async function importFile(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -135,6 +137,8 @@ export default function AdminSchedulesPage() {
     URL.revokeObjectURL(url);
   }
 
+  if (mode === "builder") return <TimetableBuilder onLegacy={() => setMode("legacy")} />;
+
   return (
     <main className="min-h-screen bg-[#fffaf5] px-4 py-6 text-[#542b24] md:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
@@ -145,6 +149,7 @@ export default function AdminSchedulesPage() {
               <h1 className="mt-1 text-2xl font-black md:text-3xl">Timetable management</h1>
             </div>
             <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => setMode("builder")} className="rounded-lg border border-white/40 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white">Timetable builder</button>
               <button type="button" disabled={!classes.length} onClick={() => openNewEntry()} className="rounded-lg bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#b60f17] disabled:cursor-not-allowed disabled:opacity-50">+ Add Entry</button>
               <a href="/schedules" target="_blank" rel="noreferrer" className="rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white">View live</a>
             </div>

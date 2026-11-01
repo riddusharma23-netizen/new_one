@@ -55,6 +55,7 @@ export const DAYS_OF_WEEK = [
   "Thursday",
   "Friday",
   "Saturday",
+  "Sunday",
 ] as const;
 
 export type DayOfWeek = (typeof DAYS_OF_WEEK)[number];

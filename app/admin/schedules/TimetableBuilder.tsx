@@ -1,0 +1,534 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import type { MasterTimeSlot } from "@/lib/schedule-master";
+import TimingSettings from "./TimingSettings";
+
+type ApiPayload<T> = {
+  success: boolean;
+  message: string;
+  data?: T;
+};
+
+type Conflict = { type: string; message: string };
+type TimetableVersion = { id: number; name: string; status: string; published_at?: string | null };
+type TimetableClass = { id: number; class_name: string; section: string; academic_year: string; display_name: string };
+type Teacher = { id: number; name: string; short_name?: string | null; status: string };
+type Subject = { id: number; name: string; class_id: number; status: string };
+type StudentGroup = { id: number; name: string; class_id: number; active: string };
+type Room = { id: number; name: string; active: string };
+type BuilderOptions = {
+  classes: TimetableClass[];
+  teachers: Teacher[];
+  subjects: Subject[];
+  groups: StudentGroup[];
+  rooms: Room[];
+  versions: TimetableVersion[];
+  time_slots: MasterTimeSlot[];
+  days: string[];
+  draft: TimetableVersion;
+};
+type Assignment = { subject_id: string; teacher_ids: string[]; room_id: string; notes: string };
+type ScheduleGroup = { name: string; student_group_id: string; assignments: Assignment[] };
+type LoadedGroup = {
+  name: string;
+  student_group_id: number | null;
+  assignments: Array<{
+    subject_id: number | null;
+    room_id: number | null;
+    notes: string | null;
+    teachers: Array<{ id: number }>;
+  }>;
+};
+
+class ApiRequestError extends Error {
+  conflicts: Conflict[];
+
+  constructor(message: string, conflicts: Conflict[] = []) {
+    super(message);
+    this.conflicts = conflicts;
+  }
+}
+
+async function requestData<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, init);
+  const payload = (await response.json()) as ApiPayload<T> & { data?: T | { conflicts?: Conflict[] } };
+  if (!response.ok || !payload.success) {
+    const data = payload.data as { conflicts?: Conflict[] } | undefined;
+    throw new ApiRequestError(payload.message || "The request could not be completed.", data?.conflicts ?? []);
+  }
+  return payload.data as T;
+}
+
+function emptyAssignment(): Assignment {
+  return { subject_id: "", teacher_ids: [], room_id: "", notes: "" };
+}
+
+function emptyGroup(number: number): ScheduleGroup {
+  return { name: `Group ${number}`, student_group_id: "", assignments: [emptyAssignment()] };
+}
+
+function formatTime(value: string) {
+  return value.slice(0, 5);
+}
+
+export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void }) {
+  const [academicYear, setAcademicYear] = useState("2025-26");
+  const [yearInput, setYearInput] = useState("2025-26");
+  const [options, setOptions] = useState<BuilderOptions | null>(null);
+  const [classId, setClassId] = useState("");
+  const [day, setDay] = useState("Monday");
+  const [timeSlotId, setTimeSlotId] = useState("");
+  const [groups, setGroups] = useState<ScheduleGroup[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [periodLoading, setPeriodLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
+  const [dirty, setDirty] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [newRoomName, setNewRoomName] = useState("");
+  const [copyClassId, setCopyClassId] = useState("");
+  const [copyDay, setCopyDay] = useState("");
+
+  const loadOptions = useCallback(async (signal?: AbortSignal) => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await requestData<BuilderOptions>(
+        `/api/admin/timetable/options?academic_year=${encodeURIComponent(academicYear)}`,
+        { signal }
+      );
+      setOptions(data);
+      setClassId((current) => data.classes.some((item) => String(item.id) === current && item.academic_year === academicYear)
+        ? current
+        : String(data.classes.find((item) => item.academic_year === academicYear)?.id ?? ""));
+      if (!data.classes.some((item) => item.academic_year === academicYear)) {
+        setGroups([]);
+        setDirty(false);
+      }
+      setTimeSlotId((current) => data.time_slots.some((item) => String(item.id) === current && item.active && item.period_number != null)
+        ? current
+        : String(data.time_slots.find((item) => item.active && item.period_number != null)?.id ?? ""));
+      setDay((current) => data.days.includes(current) ? current : data.days[0] ?? "Monday");
+    } catch (reason) {
+      if (!(reason instanceof Error && reason.name === "AbortError")) {
+        setError(reason instanceof Error ? reason.message : "Unable to load timetable options.");
+      }
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
+  }, [academicYear]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => void loadOptions(controller.signal), 0);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [loadOptions]);
+
+  useEffect(() => {
+    if (!options?.draft.id || !classId || !timeSlotId || !day) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams({
+      version_id: String(options.draft.id),
+      class_id: classId,
+      day,
+      time_slot_id: timeSlotId,
+    });
+    const timer = window.setTimeout(() => {
+      setPeriodLoading(true);
+      setError("");
+      void requestData<LoadedGroup[]>(`/api/admin/timetable/period?${params}`, { signal: controller.signal })
+        .then((rows) => {
+          setGroups(rows.map((group) => ({
+            name: group.name,
+            student_group_id: group.student_group_id ? String(group.student_group_id) : "",
+            assignments: group.assignments.map((assignment) => ({
+              subject_id: assignment.subject_id ? String(assignment.subject_id) : "",
+              teacher_ids: assignment.teachers.map((teacher) => String(teacher.id)),
+              room_id: assignment.room_id ? String(assignment.room_id) : "",
+              notes: assignment.notes ?? "",
+            })),
+          })));
+          setDirty(false);
+        })
+        .catch((reason: unknown) => {
+          if (!(reason instanceof Error && reason.name === "AbortError")) {
+            setError(reason instanceof Error ? reason.message : "Unable to load this period.");
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setPeriodLoading(false);
+        });
+    }, 0);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [options?.draft.id, classId, day, timeSlotId, refreshKey]);
+
+  const currentClass = useMemo(
+    () => options?.classes.find((item) => String(item.id) === classId),
+    [options, classId]
+  );
+  const currentSlot = useMemo(
+    () => options?.time_slots.find((item) => String(item.id) === timeSlotId),
+    [options, timeSlotId]
+  );
+  const classGroups = useMemo(
+    () => options?.groups.filter((item) => String(item.class_id) === classId && item.active !== "INACTIVE") ?? [],
+    [options, classId]
+  );
+  const classSubjects = useMemo(
+    () => options?.subjects.filter((item) => item.status !== "INACTIVE" && (!item.class_id || String(item.class_id) === classId)) ?? [],
+    [options, classId]
+  );
+  const activeRooms = options?.rooms.filter((item) => item.active !== "INACTIVE") ?? [];
+  const activeTeachers = options?.teachers.filter((item) => item.status === "ACTIVE") ?? [];
+  const regularSlots = options?.time_slots.filter((item) => item.active && item.period_number != null) ?? [];
+
+  function confirmDiscard() {
+    if (!dirty) return true;
+    const discard = window.confirm("Discard unsaved changes to this period?");
+    if (discard) setDirty(false);
+    return discard;
+  }
+
+  function updateGroup(index: number, patch: Partial<ScheduleGroup>) {
+    setGroups((current) => current.map((group, itemIndex) => itemIndex === index ? { ...group, ...patch } : group));
+    setDirty(true);
+  }
+
+  function updateAssignment(groupIndex: number, assignmentIndex: number, patch: Partial<Assignment>) {
+    setGroups((current) => current.map((group, itemIndex) => itemIndex === groupIndex
+      ? { ...group, assignments: group.assignments.map((assignment, entryIndex) => entryIndex === assignmentIndex ? { ...assignment, ...patch } : assignment) }
+      : group));
+    setDirty(true);
+  }
+
+  async function savePeriod(override = false) {
+    if (!options || !currentSlot || !classId) return;
+    if (groups.some((group) => group.assignments.some((assignment) => !assignment.subject_id))) {
+      setError("Choose a subject for each assignment before saving.");
+      return;
+    }
+    const body = {
+      version_id: options.draft.id,
+      class_id: Number(classId),
+      day_of_week: day,
+      time_slot_id: currentSlot.id,
+      override,
+      groups: groups.map((group) => ({
+        name: group.name.trim(),
+        student_group_id: group.student_group_id ? Number(group.student_group_id) : null,
+        assignments: group.assignments.map((assignment) => ({
+          subject_id: Number(assignment.subject_id),
+          teacher_ids: assignment.teacher_ids.map(Number),
+          room_id: assignment.room_id ? Number(assignment.room_id) : null,
+          notes: assignment.notes.trim() || null,
+        })),
+      })),
+    };
+    setSaving(true);
+    setError("");
+    try {
+      await requestData("/api/admin/timetable/period", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      setDirty(false);
+      setNotice("Draft period saved.");
+      setRefreshKey((value) => value + 1);
+    } catch (reason) {
+      if (reason instanceof ApiRequestError && reason.conflicts.length && !override) {
+        const detail = reason.conflicts.map((item) => item.message).join("\n");
+        if (window.confirm(`${reason.message}\n\n${detail}\n\nSave anyway with an audited conflict override?`)) {
+          await savePeriod(true);
+          return;
+        }
+      } else {
+        setError(reason instanceof Error ? reason.message : "Unable to save this period.");
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function publish(override = false) {
+    if (!options) return;
+    if (dirty) {
+      setError("Save your draft changes before publishing.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      await requestData(`/api/admin/timetable/versions/${options.draft.id}/publish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ override }),
+      });
+      setNotice("Timetable published to the public website.");
+      await loadOptions();
+    } catch (reason) {
+      if (reason instanceof ApiRequestError && reason.conflicts.length && !override) {
+        const detail = reason.conflicts.map((item) => item.message).join("\n");
+        if (window.confirm(`${reason.message}\n\n${detail}\n\nPublish anyway with an audited conflict override?`)) {
+          await publish(true);
+          return;
+        }
+      } else {
+        setError(reason instanceof Error ? reason.message : "Unable to publish timetable.");
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function copySchedule(targetClassId: string, targetDay: string, override = false) {
+    if (!options || !classId || !targetClassId || !targetDay) return;
+    if (!override && !window.confirm(`Replace ${targetDay} for ${options.classes.find((item) => String(item.id) === targetClassId)?.display_name ?? "the selected class"} with ${day} from ${currentClass?.display_name ?? "the selected class"}? An empty source day will clear the target day.`)) return;
+    setSaving(true);
+    setError("");
+    try {
+      await requestData("/api/admin/timetable/copy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          version_id: options.draft.id,
+          source_class_id: Number(classId),
+          target_class_id: Number(targetClassId),
+          source_day: day,
+          target_day: targetDay,
+          override,
+        }),
+      });
+      setDirty(false);
+      setNotice(`Copied ${day} to ${targetDay}.`);
+      if (targetClassId === classId && targetDay === day) setRefreshKey((value) => value + 1);
+    } catch (reason) {
+      if (reason instanceof ApiRequestError && reason.conflicts.length && !override) {
+        const detail = reason.conflicts.map((item) => item.message).join("\n");
+        if (window.confirm(`${reason.message}\n\n${detail}\n\nCopy anyway with an audited conflict override?`)) {
+          await copySchedule(targetClassId, targetDay, true);
+          return;
+        }
+      } else {
+        setError(reason instanceof Error ? reason.message : "Unable to copy the timetable.");
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function createStudentGroup(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!classId || !newGroupName.trim()) return;
+    setError("");
+    try {
+      await requestData("/api/admin/groups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newGroupName.trim(), class_id: Number(classId) }),
+      });
+      setNewGroupName("");
+      setNotice("Student group created.");
+      await loadOptions();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Unable to create student group.");
+    }
+  }
+
+  async function createRoom(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!newRoomName.trim()) return;
+    setError("");
+    try {
+      await requestData("/api/admin/rooms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newRoomName.trim(), room_type: "CLASSROOM" }),
+      });
+      setNewRoomName("");
+      setNotice("Classroom created.");
+      await loadOptions();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Unable to create classroom.");
+    }
+  }
+
+  async function restoreVersion(versionId: string) {
+    if (!versionId || !confirmDiscard() || !window.confirm("Restore this timetable version into a new draft?")) return;
+    setError("");
+    try {
+      await requestData(`/api/admin/timetable/versions/${versionId}/restore`, { method: "POST" });
+      setNotice("Previous version restored as a draft.");
+      await loadOptions();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Unable to restore timetable version.");
+    }
+  }
+
+  return (
+    <section className="mx-auto max-w-7xl space-y-5 px-4 py-6 md:px-8">
+      <header className="rounded-2xl bg-[linear-gradient(112deg,#951c12,#b60f17,#df5b00)] p-5 text-white shadow-lg">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-100">Admin · Draft builder</p>
+            <h1 className="mt-1 text-2xl font-black md:text-3xl">Timetable management</h1>
+            <p className="mt-1 text-sm text-orange-50">Build parallel student groups, assign subjects, teachers and rooms, then publish.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <a href="/schedules" target="_blank" rel="noreferrer" className="rounded-lg border border-white/40 px-3 py-2 text-sm font-bold">View public timetable</a>
+            <button type="button" onClick={onLegacy} className="rounded-lg bg-white px-3 py-2 text-sm font-bold text-[#a51d18]">Legacy schedule tools</button>
+          </div>
+        </div>
+      </header>
+
+      {error ? <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</div> : null}
+      {notice ? <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">{notice}</div> : null}
+      {loading ? <div className="rounded-xl border border-[#f2ddc5] bg-white p-8 text-center">Loading timetable options…</div> : null}
+      {!loading && !options ? <div className="rounded-xl border border-[#f2ddc5] bg-white p-8 text-center">Timetable options could not be loaded.</div> : null}
+
+      {options ? (
+        <>
+          <TimingSettings slots={options.time_slots} onSaved={() => { setRefreshKey((value) => value + 1); void loadOptions(); }} />
+          <div className="grid gap-3 rounded-xl border border-[#f2ddc5] bg-white p-4 shadow-sm md:grid-cols-4">
+            <label className="text-sm font-bold text-slate-700">Academic year
+              <span className="mt-1 flex gap-2">
+                <input value={yearInput} onChange={(event) => setYearInput(event.target.value)} className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2" />
+                <button type="button" disabled={!yearInput.trim() || yearInput.trim() === academicYear} onClick={() => { if (confirmDiscard()) setAcademicYear(yearInput.trim()); }} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold disabled:opacity-50">Load</button>
+              </span>
+            </label>
+            <label className="text-sm font-bold text-slate-700">Class
+              <select value={classId} onChange={(event) => { if (!confirmDiscard()) return; setClassId(event.target.value); if (!event.target.value) setGroups([]); }} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">
+                <option value="">Select class</option>
+                {options.classes.filter((item) => item.academic_year === academicYear).map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}
+              </select>
+            </label>
+            <label className="text-sm font-bold text-slate-700">Day
+              <select value={day} onChange={(event) => { if (confirmDiscard()) setDay(event.target.value); }} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">
+                {options.days.map((item) => <option key={item}>{item}</option>)}
+              </select>
+            </label>
+            <label className="text-sm font-bold text-slate-700">Period
+              <select value={timeSlotId} onChange={(event) => { if (confirmDiscard()) setTimeSlotId(event.target.value); }} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">
+                {regularSlots.map((item) => <option key={item.id} value={item.id}>{item.label} · {formatTime(item.start_time)}–{formatTime(item.end_time)}</option>)}
+              </select>
+            </label>
+            <div className="flex items-end gap-2 md:col-span-4">
+              <button type="button" disabled={saving || periodLoading || !classId || !currentSlot} onClick={() => void savePeriod()} className="rounded-lg bg-[#b60f17] px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{saving ? "Saving…" : "Save period draft"}</button>
+              <button type="button" disabled={saving || dirty || options.draft.status !== "DRAFT"} onClick={() => void publish()} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">Publish timetable</button>
+              <span className="text-xs text-slate-500">{options.draft.name} · {options.draft.status}</span>
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <details className="rounded-xl border border-[#f2ddc5] bg-white p-4 shadow-sm">
+              <summary className="cursor-pointer text-sm font-bold text-slate-800">Create student group for {currentClass?.display_name ?? "selected class"}</summary>
+              <form onSubmit={(event) => void createStudentGroup(event)} className="mt-3 flex flex-wrap gap-2">
+                <input required value={newGroupName} onChange={(event) => setNewGroupName(event.target.value)} placeholder="e.g. Biology Group" className="min-w-52 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                <button disabled={!classId} className="rounded-lg bg-[#b60f17] px-3 py-2 text-sm font-bold text-white disabled:opacity-50">Add group</button>
+              </form>
+            </details>
+            <details className="rounded-xl border border-[#f2ddc5] bg-white p-4 shadow-sm">
+              <summary className="cursor-pointer text-sm font-bold text-slate-800">Add classroom</summary>
+              <form onSubmit={(event) => void createRoom(event)} className="mt-3 flex flex-wrap gap-2">
+                <input required value={newRoomName} onChange={(event) => setNewRoomName(event.target.value)} placeholder="e.g. Room 101" className="min-w-52 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                <button className="rounded-lg bg-[#b60f17] px-3 py-2 text-sm font-bold text-white">Add room</button>
+              </form>
+            </details>
+          </div>
+
+          <section className="space-y-4 rounded-xl border border-[#f2ddc5] bg-white p-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <h2 className="font-black text-slate-900">{currentClass?.display_name ?? "Select a class"} · {currentSlot?.label ?? "Select a period"}</h2>
+                {currentSlot ? <p className="text-xs text-slate-500">{formatTime(currentSlot.start_time)}–{formatTime(currentSlot.end_time)} · {day}</p> : null}
+              </div>
+              <button type="button" disabled={!classId || !currentSlot} onClick={() => { setGroups((current) => [...current, emptyGroup(current.length + 1)]); setDirty(true); }} className="rounded-lg border border-[#b60f17] px-3 py-2 text-sm font-bold text-[#b60f17] disabled:opacity-50">+ Add parallel group</button>
+            </div>
+
+            {periodLoading ? <p className="py-6 text-center text-sm text-slate-500">Loading period…</p> : null}
+            {!periodLoading && !groups.length ? <p className="rounded-lg bg-slate-50 p-5 text-center text-sm text-slate-600">No groups in this period yet. Add one to start scheduling.</p> : null}
+            {!periodLoading ? groups.map((group, groupIndex) => (
+              <article key={groupIndex} className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+                  <label className="text-xs font-bold text-slate-700">Schedule group name
+                    <input value={group.name} onChange={(event) => updateGroup(groupIndex, { name: event.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" />
+                  </label>
+                  <label className="text-xs font-bold text-slate-700">Student group
+                    <select value={group.student_group_id} onChange={(event) => updateGroup(groupIndex, { student_group_id: event.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+                      <option value="">Whole class / unassigned</option>
+                      {classGroups.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                    </select>
+                  </label>
+                  <button type="button" onClick={() => { setGroups((current) => current.filter((_, index) => index !== groupIndex)); setDirty(true); }} className="self-end rounded-lg px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">Remove group</button>
+                </div>
+
+                {group.assignments.map((assignment, assignmentIndex) => (
+                  <div key={assignmentIndex} className="grid gap-3 rounded-lg border border-white bg-white p-3 md:grid-cols-2 xl:grid-cols-4">
+                    <label className="text-xs font-bold text-slate-700">Subject
+                      <select required value={assignment.subject_id} onChange={(event) => updateAssignment(groupIndex, assignmentIndex, { subject_id: event.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        <option value="">Select subject</option>
+                        {classSubjects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                      </select>
+                    </label>
+                    <label className="text-xs font-bold text-slate-700">Teacher(s)
+                      <select multiple value={assignment.teacher_ids} onChange={(event) => updateAssignment(groupIndex, assignmentIndex, { teacher_ids: Array.from(event.currentTarget.selectedOptions, (option) => option.value) })} className="mt-1 h-[42px] w-full rounded-lg border border-slate-300 px-3 py-2 text-xs">
+                        {activeTeachers.map((item) => <option key={item.id} value={item.id}>{item.short_name || item.name}</option>)}
+                      </select>
+                      <span className="font-normal text-slate-500">Use Ctrl/Cmd to select multiple.</span>
+                    </label>
+                    <label className="text-xs font-bold text-slate-700">Classroom
+                      <select value={assignment.room_id} onChange={(event) => updateAssignment(groupIndex, assignmentIndex, { room_id: event.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        <option value="">Unassigned</option>
+                        {activeRooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                      </select>
+                    </label>
+                    <div className="flex items-end justify-between gap-2">
+                      <label className="flex-1 text-xs font-bold text-slate-700">Notes
+                        <input value={assignment.notes} onChange={(event) => updateAssignment(groupIndex, assignmentIndex, { notes: event.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                      </label>
+                      <button type="button" disabled={group.assignments.length <= 1} onClick={() => { updateGroup(groupIndex, { assignments: group.assignments.filter((_, index) => index !== assignmentIndex) }); }} className="rounded-lg px-2 py-2 text-xs font-semibold text-red-700 disabled:opacity-40">Remove</button>
+                    </div>
+                  </div>
+                ))}
+                <button type="button" onClick={() => updateGroup(groupIndex, { assignments: [...group.assignments, emptyAssignment()] })} className="text-sm font-bold text-[#b60f17]">+ Add subject assignment</button>
+              </article>
+            )) : null}
+          </section>
+
+          <section className="flex flex-wrap items-center gap-3 rounded-xl border border-[#f2ddc5] bg-white p-4 shadow-sm">
+            <label className="text-sm font-bold text-slate-700">Copy this day to
+              <select value={copyClassId || classId} onChange={(event) => setCopyClassId(event.target.value)} className="ml-2 rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                {options.classes.filter((item) => item.academic_year === academicYear).map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}
+              </select>
+              <select value={copyDay} onChange={(event) => setCopyDay(event.target.value)} className="ml-2 rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                <option value="">Select day…</option>
+                {options.days.filter((item) => item !== day).map((item) => <option key={item}>{item}</option>)}
+              </select>
+            </label>
+            <button type="button" disabled={saving || dirty || !classId || !copyDay} onClick={() => void copySchedule(copyClassId || classId, copyDay)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold disabled:opacity-50">Copy day</button>
+            <span className="text-xs text-slate-500">The target day is replaced in the draft; conflicts are checked first.</span>
+          </section>
+
+          <section className="flex flex-wrap items-center gap-3 rounded-xl border border-[#f2ddc5] bg-white p-4 shadow-sm">
+            <label className="text-sm font-bold text-slate-700">Restore a previous version
+              <select defaultValue="" onChange={(event) => void restoreVersion(event.target.value)} className="ml-2 rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                <option value="">Choose version…</option>
+                {options.versions.filter((version) => version.status === "ARCHIVED").map((version) => <option key={version.id} value={version.id}>{version.name} · {version.status}</option>)}
+              </select>
+            </label>
+            <span className="text-xs text-slate-500">Restoring creates a new editable draft; published history remains unchanged.</span>
+          </section>
+        </>
+      ) : null}
+    </section>
+  );
+}

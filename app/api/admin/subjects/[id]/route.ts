@@ -3,7 +3,7 @@ import { logActivity, requireAdmin } from "@/lib/auth";
 import { execute, queryOne } from "@/lib/db";
 import { getIdParam } from "@/lib/list";
 import { revalidatePublic } from "@/lib/revalidate";
-import { asInteger, asString } from "@/lib/validation";
+import { asInteger, asOptionalString, asString } from "@/lib/validation";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -19,7 +19,7 @@ export async function PATCH(request: Request, context: Ctx) {
     const subject_code = asString(body.subject_code);
     const class_id = asInteger(body.class_id);
     const result = await execute(
-      `UPDATE subjects SET subject_name=?, subject_code=?, class_id=?, teacher_id=?, weekly_periods=?, status=? WHERE id=?`,
+      `UPDATE subjects SET subject_name=?, subject_code=?, class_id=?, teacher_id=?, weekly_periods=?, status=?, category=? WHERE id=?`,
       [
         subject_name,
         subject_code,
@@ -27,6 +27,7 @@ export async function PATCH(request: Request, context: Ctx) {
         asInteger(body.teacher_id),
         asInteger(body.weekly_periods) ?? 1,
         asString(body.status) === "INACTIVE" ? "INACTIVE" : "ACTIVE",
+        asOptionalString(body.category),
         id,
       ]
     );

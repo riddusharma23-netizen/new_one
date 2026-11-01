@@ -19,7 +19,7 @@ export async function PATCH(request: Request, context: Ctx) {
     const section = asString(body.section);
     const academic_year = asString(body.academic_year);
     const result = await execute(
-      `UPDATE classes SET class_name=?, section=?, academic_year=?, class_teacher_id=?, room=?, status=? WHERE id=?`,
+      `UPDATE classes SET class_name=?, section=?, academic_year=?, class_teacher_id=?, room=?, status=?, capacity=?, category=? WHERE id=?`,
       [
         class_name,
         section,
@@ -27,6 +27,8 @@ export async function PATCH(request: Request, context: Ctx) {
         asInteger(body.class_teacher_id),
         asOptionalString(body.room),
         asString(body.status) === "INACTIVE" ? "INACTIVE" : "ACTIVE",
+        asInteger(body.capacity),
+        asOptionalString(body.category),
         id,
       ]
     );

@@ -26,6 +26,8 @@ export type MasterClassRow = {
 };
 
 export function isTimetableGrade(classRow: Pick<MasterClassRow, "name" | "display_name">) {
+  const name = `${classRow.name} ${classRow.display_name}`.toLowerCase();
+  if (name.includes("junior extra")) return true;
   const grade = Number.parseInt(classRow.name.match(/\d+/)?.[0] ?? classRow.display_name.match(/\d+/)?.[0] ?? "", 10);
   return grade >= 6 && grade <= 12;
 }
@@ -60,7 +62,11 @@ export type MasterScheduleEntry = {
   academic_year: string;
   class_id: number;
   class_name: string;
+  group_id?: number | null;
   group_name?: string | null;
+  student_group_name?: string | null;
+  teacher_names?: string | null;
+  time_slot_id?: number | null;
   subject_id?: number | null;
   subject_name?: string | null;
   teacher_id?: number | null;
@@ -85,6 +91,12 @@ export type MasterScheduleData = {
     title: string;
   };
   academic_year: string;
+  version?: {
+    id: number;
+    name: string;
+    status: string;
+    published_at?: string | null;
+  } | null;
   classes: MasterClassRow[];
   time_slots: MasterTimeSlot[];
   breaks: MasterTimeSlot[];
@@ -173,7 +185,7 @@ export function normalizeSchoolData(input: {
   entries: Array<Record<string, unknown>>;
   academicYear: string;
   timeSlots?: MasterTimeSlot[];
-}) {
+}): MasterScheduleData {
   const classes = (input.classes ?? []).map((item) => ({
     id: Number(item.id),
     name: textValue(item.name ?? item.class_name, "Class"),
@@ -251,5 +263,5 @@ export function normalizeSchoolData(input: {
     teachers,
     subjects,
     schedule_entries: entries,
-  } satisfies MasterScheduleData;
+  };
 }

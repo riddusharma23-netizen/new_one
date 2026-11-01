@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BookOpen, Coffee, Clock3 } from "lucide-react";
-import TimetableBoard from "@/components/TimetableBoard";
+import PublicTimetableBoard from "@/components/PublicTimetableBoard";
 import { SCHOOL_NAME, isTimetableGrade, type MasterScheduleData } from "@/lib/schedule-master";
 
 type ApiResponse<T> = { success: boolean; message: string; data?: T };
@@ -55,7 +55,7 @@ export default function SchedulesPage() {
 
         {!loading && !error && data?.classes.length ? (
           <>
-            <TimetableBoard data={data} />
+            <PublicTimetableBoard data={data} />
             <section className="mt-3 grid gap-2 sm:grid-cols-3">
               <div className="flex items-start gap-3 rounded-lg border border-[#f2ddc5] bg-white p-3">
                 <Clock3 className="mt-0.5 shrink-0 text-[#b60f17]" size={20} aria-hidden="true" />

@@ -18,9 +18,11 @@ export function ok<T>(data: T, message = "OK", status = 200) {
   );
 }
 
-export function fail(message: string, status = 400) {
+export function fail(message: string, status = 400, data?: unknown) {
   return NextResponse.json(
-    { success: false, message } satisfies ApiError,
+    data === undefined
+      ? ({ success: false, message } satisfies ApiError)
+      : { success: false, message, data },
     { status }
   );
 }
