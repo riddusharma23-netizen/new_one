@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { fail, ok } from "@/lib/http";
-import { asInteger, asString } from "@/lib/validation";
+import { asInteger, asString, normalizeSchoolDay } from "@/lib/validation";
 import { TimetableConflictError, loadPeriodGroups, savePeriod, type GroupInput } from "@/lib/timetable";
 
 function parseGroups(value: unknown): GroupInput[] {
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
   const versionId = asInteger(url.searchParams.get("version_id"));
   const classId = asInteger(url.searchParams.get("class_id"));
   const timeSlotId = asInteger(url.searchParams.get("time_slot_id"));
-  const day = asString(url.searchParams.get("day"));
+  const day = normalizeSchoolDay(url.searchParams.get("day"));
   if (!versionId || !classId || !timeSlotId || !day) return fail("version_id, class_id, day and time_slot_id are required.");
   return ok(await loadPeriodGroups(versionId, classId, day, timeSlotId));
 }
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     const versionId = asInteger(body.version_id);
     const classId = asInteger(body.class_id);
     const timeSlotId = asInteger(body.time_slot_id);
-    const day = asString(body.day_of_week || body.day);
+    const day = normalizeSchoolDay(body.day_of_week || body.day);
     if (!versionId || !classId || !timeSlotId || !day) return fail("version_id, class_id, day and time_slot_id are required.");
     const groups = parseGroups(body.groups);
     const override = body.override === true;

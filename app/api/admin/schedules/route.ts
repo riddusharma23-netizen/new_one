@@ -3,8 +3,9 @@ import { logActivity, requireAdmin } from "@/lib/auth";
 import { execute, queryOne } from "@/lib/db";
 import { paginate } from "@/lib/list";
 import { revalidatePublic } from "@/lib/revalidate";
-import { resolvePeriodTimes } from "@/lib/schedule-conflicts";
-import { asInteger, asOptionalString, asString } from "@/lib/validation";
+import { InvalidSchedulePeriodError, resolvePeriodTimes } from "@/lib/schedule-conflicts";
+import { parseLegacyScheduleInput, validateLegacyScheduleReferences } from "@/lib/legacy-schedule-input";
+import { asInteger } from "@/lib/validation";
 
 export async function GET(request: Request) {
   const { session, error } = await requireAdmin();
@@ -55,27 +56,12 @@ export async function POST(request: Request) {
   if (!session) return fail(error ?? "Authentication required", 401);
 
   try {
-    const body = (await request.json()) as Record<string, unknown>;
-    const teacher_id = asInteger(body.teacher_id);
-    const class_id = asInteger(body.class_id);
-    const subject_id = asInteger(body.subject_id);
-    const period_number = asInteger(body.period_number);
-    const day_of_week = asString(body.day_of_week);
-    const academic_year = asString(body.academic_year);
-
-    const times = await resolvePeriodTimes(period_number ?? 0, asOptionalString(body.start_time), asOptionalString(body.end_time));
-    const payload = {
-      teacher_id,
-      class_id,
-      subject_id,
-      day_of_week,
-      period_number,
-      start_time: times.start_time,
-      end_time: times.end_time,
-      room: asOptionalString(body.room),
-      academic_year,
-      status: asString(body.status) === "INACTIVE" ? "INACTIVE" : "ACTIVE",
-    };
+    const parsed = parseLegacyScheduleInput(await request.json());
+    if (!parsed.input) return fail(parsed.error, 400);
+    const payload = parsed.input;
+    const referenceError = await validateLegacyScheduleReferences(payload);
+    if (referenceError) return fail(referenceError, 400);
+    const times = await resolvePeriodTimes(payload.period_number, payload.start_time, payload.end_time);
 
     const result = await execute(
       `INSERT INTO schedules
@@ -87,8 +73,8 @@ export async function POST(request: Request) {
         payload.subject_id,
         payload.day_of_week,
         payload.period_number,
-        payload.start_time,
-        payload.end_time,
+        times.start_time,
+        times.end_time,
         payload.room,
         payload.academic_year,
         payload.status,
@@ -99,6 +85,8 @@ export async function POST(request: Request) {
     revalidatePublic();
     return ok(await queryOne("SELECT * FROM schedules WHERE id = ?", [result.insertId]), "Schedule created successfully", 201);
   } catch (err) {
+    if (err instanceof SyntaxError) return fail("Request body must be valid JSON.", 400);
+    if (err instanceof InvalidSchedulePeriodError) return fail(err.message, 400);
     console.error(err);
     return fail("Unable to create schedule.", 500);
   }

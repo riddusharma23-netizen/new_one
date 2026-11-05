@@ -48,13 +48,24 @@ export function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-export const DAYS_OF_WEEK = [
+export const SCHOOL_DAYS = [
   "Monday",
   "Tuesday",
   "Wednesday",
   "Thursday",
   "Friday",
   "Saturday",
+] as const;
+
+export type SchoolDay = (typeof SCHOOL_DAYS)[number];
+
+export function normalizeSchoolDay(value: unknown): SchoolDay | null {
+  const day = asString(value).toLowerCase();
+  return SCHOOL_DAYS.find((item) => item.toLowerCase() === day) ?? null;
+}
+
+export const DAYS_OF_WEEK = [
+  ...SCHOOL_DAYS,
   "Sunday",
 ] as const;
 

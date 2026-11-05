@@ -1,5 +1,7 @@
+import { SCHOOL_DAYS } from "@/lib/validation";
+
 export const SCHOOL_NAME = "Smt. Champi Devi Inter College";
-export const DEFAULT_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
+export const DEFAULT_DAYS = SCHOOL_DAYS;
 
 export type SchoolDay = (typeof DEFAULT_DAYS)[number];
 

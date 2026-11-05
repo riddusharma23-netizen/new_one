@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { fail, ok } from "@/lib/http";
-import { asInteger, asString, isDayOfWeek } from "@/lib/validation";
+import { asInteger, asString, normalizeSchoolDay } from "@/lib/validation";
 import { copyTimetable, TimetableConflictError } from "@/lib/timetable";
 
 export async function POST(request: Request) {
@@ -10,18 +10,19 @@ export async function POST(request: Request) {
     const body = (await request.json()) as Record<string, unknown>;
     const versionId = asInteger(body.version_id);
     const sourceClassId = asInteger(body.source_class_id);
-    const sourceDay = asString(body.source_day);
-    const targetDays = Array.isArray(body.target_days)
-      ? body.target_days.map((day) => asString(day)).filter(Boolean)
+    const sourceDay = normalizeSchoolDay(body.source_day);
+    const rawTargetDays = Array.isArray(body.target_days)
+      ? body.target_days
       : asString(body.target_day)
-        ? [asString(body.target_day)]
+        ? [body.target_day]
         : [];
-    if (!versionId || !sourceClassId || !isDayOfWeek(sourceDay) || !targetDays.length) {
+    const targetDays = rawTargetDays.map(normalizeSchoolDay);
+    if (!versionId || !sourceClassId || !sourceDay || !targetDays.length) {
       return fail("version_id, source class, source day and at least one target day are required.");
     }
-    if (targetDays.some((targetDay) => !isDayOfWeek(targetDay))) return fail("One or more target days are invalid.");
+    if (targetDays.some((targetDay) => !targetDay)) return fail("Choose target days from Monday to Saturday.");
     const targetClassId = asInteger(body.target_class_id) || sourceClassId;
-    const uniqueTargetDays = [...new Set(targetDays)];
+    const uniqueTargetDays = [...new Set(targetDays.filter((day): day is NonNullable<typeof day> => day !== null))];
     const canOverride = session.role === "SUPER_ADMIN" || session.role === "ADMIN";
     await copyTimetable({
       versionId,

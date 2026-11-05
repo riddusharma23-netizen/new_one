@@ -3,8 +3,9 @@ import * as XLSX from "xlsx";
 import { logActivity, requireAdmin } from "@/lib/auth";
 import { getPool } from "@/lib/db";
 import { revalidatePublic } from "@/lib/revalidate";
-import { resolvePeriodTimes } from "@/lib/schedule-conflicts";
-import { asInteger, asOptionalString, asString, isDayOfWeek } from "@/lib/validation";
+import { InvalidSchedulePeriodError, resolvePeriodTimes } from "@/lib/schedule-conflicts";
+import { asInteger, asOptionalString, asString, normalizeSchoolDay } from "@/lib/validation";
+import type { SchoolDay } from "@/lib/validation";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_ROWS = 500;
@@ -13,10 +14,11 @@ const allowedExtensions = new Set(["xlsx", "xls", "csv"]);
 type ImportRow = Record<string, unknown>;
 
 type ResolvedRow = {
+  sourceRow: number;
   teacherId: number;
   classId: number;
   subjectId: number;
-  day: string;
+  day: SchoolDay;
   period: number;
   room: string | null;
   academicYear: string;
@@ -73,7 +75,7 @@ export async function POST(request: Request) {
         const className = text(row, "class", "class_name");
         const section = text(row, "section");
         const subjectName = text(row, "subject", "subject_name");
-        const day = text(row, "day", "day_of_week");
+        const day = normalizeSchoolDay(value(row, "day", "day_of_week"));
         const period = number(row, "period", "period_number");
         const academicYear = text(row, "academic_year", "year");
         const room = asOptionalString(value(row, "room"));
@@ -85,7 +87,7 @@ export async function POST(request: Request) {
           ? await connection.execute("SELECT id FROM classes WHERE id = ? AND status = 'ACTIVE'", [classId])
           : await connection.execute("SELECT id FROM classes WHERE class_name = ? AND section = ? AND academic_year = ? AND status = 'ACTIVE' LIMIT 1", [className, section, academicYear]);
         const selectedClass = (classRows as Array<{ id: number }>)[0];
-        const selectedClassId = classId || selectedClass?.id;
+        const selectedClassId = selectedClass.id;
         const [subjectRows] = subjectId
           ? await connection.execute("SELECT id, class_id FROM subjects WHERE id = ? AND status = 'ACTIVE'", [subjectId])
           : await connection.execute("SELECT id, class_id FROM subjects WHERE subject_name = ? AND class_id = ? AND status = 'ACTIVE' LIMIT 1", [subjectName, selectedClassId || 0]);
@@ -96,15 +98,28 @@ export async function POST(request: Request) {
           failures.push({ row: rowNumber, message: "Teacher, class, or subject was not found" });
           continue;
         }
-        if (!day || !isDayOfWeek(day) || !period || period < 1 || period > 8 || !academicYear) {
-          failures.push({ row: rowNumber, message: "Day, period (1-8), and academic year are required" });
+        if (!day || !period || period < 1 || !academicYear || academicYear.length > 20) {
+          failures.push({ row: rowNumber, message: "Choose a day from Monday to Saturday, a configured period, and an academic year." });
           continue;
         }
-        resolved.push({ teacherId: teacher.id, classId: selectedClassId, subjectId: subject.id, day, period, room, academicYear, startTime: asOptionalString(value(row, "start_time")), endTime: asOptionalString(value(row, "end_time")), status: text(row, "status") === "INACTIVE" ? "INACTIVE" : "ACTIVE" });
+        if (subject.class_id !== selectedClassId) {
+          failures.push({ row: rowNumber, message: "The selected subject does not belong to this class." });
+          continue;
+        }
+        resolved.push({ sourceRow: rowNumber, teacherId: teacher.id, classId: selectedClassId, subjectId: subject.id, day, period, room, academicYear, startTime: asOptionalString(value(row, "start_time")), endTime: asOptionalString(value(row, "end_time")), status: text(row, "status") === "INACTIVE" ? "INACTIVE" : "ACTIVE" });
       }
 
       for (const item of resolved) {
-        const times = await resolvePeriodTimes(item.period, item.startTime, item.endTime);
+        let times: Awaited<ReturnType<typeof resolvePeriodTimes>>;
+        try {
+          times = await resolvePeriodTimes(item.period, item.startTime, item.endTime);
+        } catch (error) {
+          if (error instanceof InvalidSchedulePeriodError) {
+            failures.push({ row: item.sourceRow, message: error.message });
+            continue;
+          }
+          throw error;
+        }
         await connection.execute("INSERT INTO schedules (teacher_id, class_id, subject_id, day_of_week, period_number, start_time, end_time, room, academic_year, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [item.teacherId, item.classId, item.subjectId, item.day, item.period, times.start_time, times.end_time, item.room, item.academicYear, item.status]);
         imported += 1;
       }

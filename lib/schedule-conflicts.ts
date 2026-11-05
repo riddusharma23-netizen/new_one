@@ -1,9 +1,11 @@
 import { query } from "@/lib/db";
 import { getSchoolTimings } from "@/lib/school-timings";
 
+export class InvalidSchedulePeriodError extends Error {}
+
 export async function resolvePeriodTimes(period: number, start?: string | null, end?: string | null) {
   const slot = (await getSchoolTimings()).find((item) => item.period_number === period && item.active);
-  if (!slot) throw new Error("Selected period is unavailable in the active school timing configuration");
+  if (!slot) throw new InvalidSchedulePeriodError("Selected period is unavailable in the active school timing configuration");
   return {
     start_time: start?.trim() || slot.start_time,
     end_time: end?.trim() || slot.end_time,
