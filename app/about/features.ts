@@ -44,7 +44,7 @@ export const infrastructureData = {
       id: 4,
       icon: HeartHandshake,
       title: "Character Building Program",
-      image: "/images/about/iskcon.jpg",
+      image: "/images/about/ISKCON-Temple.jpg",
       description:
         "Weekly ISKCON sessions help students develop discipline, leadership, and strong moral values.",
     },

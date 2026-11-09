@@ -2,6 +2,7 @@ import "./globals.css";
 import { headers } from "next/headers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import PageTransitionShell from "@/components/PageTransitionShell";
 
 export default async function RootLayout({
   children,
@@ -13,9 +14,9 @@ export default async function RootLayout({
   const isTimetableRoute = pathname === "/schedules" || pathname.startsWith("/schedules/");
 
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>
-        <div className="site-shell">
+        <PageTransitionShell>
           {!isAdminRoute && !isTimetableRoute ? <Navbar /> : null}
 
           {/* Har page ka content */}
@@ -23,7 +24,7 @@ export default async function RootLayout({
 
           {/* Footer */}
           {!isAdminRoute && !isTimetableRoute ? <Footer /> : null}
-        </div>
+        </PageTransitionShell>
 
       </body>
     </html>

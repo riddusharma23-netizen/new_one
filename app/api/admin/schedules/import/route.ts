@@ -90,7 +90,7 @@ export async function POST(request: Request) {
         const selectedClassId = selectedClass.id;
         const [subjectRows] = subjectId
           ? await connection.execute("SELECT id, class_id FROM subjects WHERE id = ? AND status = 'ACTIVE'", [subjectId])
-          : await connection.execute("SELECT id, class_id FROM subjects WHERE subject_name = ? AND class_id = ? AND status = 'ACTIVE' LIMIT 1", [subjectName, selectedClassId || 0]);
+          : await connection.execute("SELECT id, class_id FROM subjects WHERE subject_name = ? AND status = 'ACTIVE' LIMIT 1", [subjectName]);
 
         const teacher = (teacherRows as Array<{ id: number }>)[0];
         const subject = (subjectRows as Array<{ id: number; class_id: number }>)[0];
@@ -100,10 +100,6 @@ export async function POST(request: Request) {
         }
         if (!day || !period || period < 1 || !academicYear || academicYear.length > 20) {
           failures.push({ row: rowNumber, message: "Choose a day from Monday to Saturday, a configured period, and an academic year." });
-          continue;
-        }
-        if (subject.class_id !== selectedClassId) {
-          failures.push({ row: rowNumber, message: "The selected subject does not belong to this class." });
           continue;
         }
         resolved.push({ sourceRow: rowNumber, teacherId: teacher.id, classId: selectedClassId, subjectId: subject.id, day, period, room, academicYear, startTime: asOptionalString(value(row, "start_time")), endTime: asOptionalString(value(row, "end_time")), status: text(row, "status") === "INACTIVE" ? "INACTIVE" : "ACTIVE" });

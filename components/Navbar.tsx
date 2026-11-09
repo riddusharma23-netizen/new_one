@@ -611,6 +611,7 @@ export default function Navbar() {
             type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-expanded={mobileOpen}
+            aria-controls="mobile-site-menu"
             aria-label="Toggle navigation menu"
             className="
               flex
@@ -646,8 +647,12 @@ export default function Navbar() {
         ========================================== */}
 
         <div
+          id="mobile-site-menu"
+          inert={!mobileOpen}
           className={`
-            overflow-hidden
+          overflow-x-hidden
+          overflow-y-auto
+          overscroll-contain
             bg-[#fffaf5]
             text-slate-800
             transition-all
@@ -655,13 +660,13 @@ export default function Navbar() {
 
             ${
               mobileOpen
-                ? "max-h-[900px] border-t border-white/10"
+                ? "max-h-[min(80dvh,52rem)] border-t border-white/10"
                 : "max-h-0"
             }
           `}
         >
           <div className="p-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2 min-[380px]:gap-3">
               {menuItems.map((item) => {
                 const Icon = item.icon;
 
@@ -731,7 +736,7 @@ export default function Navbar() {
                 return (
                   <div
                     key={item.title}
-                    className="col-span-2"
+                    className="min-[380px]:col-span-2"
                   >
                     <button
                       type="button"

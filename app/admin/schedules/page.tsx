@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import TimetableBoard from "@/components/TimetableBoard";
-import { DEFAULT_DAYS, isTimetableGrade, type MasterScheduleData } from "@/lib/schedule-master";
+import { isTimetableGrade, type MasterScheduleData } from "@/lib/schedule-master";
 import TimingSettings from "./TimingSettings";
 import TimetableBuilder from "./TimetableBuilder";
 
@@ -18,11 +18,11 @@ type EntryForm = {
   room: string;
 };
 
-const DAYS = DEFAULT_DAYS;
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
 const EMPTY_FORM: EntryForm = { class_id: "", subject_id: "", teacher_id: "", day_of_week: "Monday", period_number: "1", room: "" };
 
 export default function AdminSchedulesPage() {
-  const [mode, setMode] = useState<"builder" | "legacy">("legacy");
+  const [mode, setMode] = useState<"builder" | "legacy">("builder");
   const [data, setData] = useState<MasterScheduleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -38,11 +38,10 @@ export default function AdminSchedulesPage() {
   const classes = useMemo(() => data?.classes.filter(isTimetableGrade) ?? [], [data]);
   const teachers = useMemo(() => data?.teachers ?? [], [data]);
   const timeSlots = useMemo(() => data?.time_slots ?? [], [data]);
-  const activePeriods = useMemo(() => timeSlots.filter((slot) => slot.active && slot.period_number != null), [timeSlots]);
   const formSubjects = useMemo(() => data?.subjects ?? [], [data]);
 
   function openNewEntry(classId?: number, periodNumber?: number, day = selectedDay) {
-    setForm({ ...EMPTY_FORM, class_id: classId ? String(classId) : classes[0] ? String(classes[0].id) : "", period_number: String(periodNumber ?? activePeriods[0]?.period_number ?? 1), day_of_week: day });
+    setForm({ ...EMPTY_FORM, class_id: classId ? String(classId) : classes[0] ? String(classes[0].id) : "", period_number: periodNumber ? String(periodNumber) : "1", day_of_week: day });
     setSelectedDay(day);
     setFormOpen(true);
     setError("");
@@ -56,14 +55,10 @@ export default function AdminSchedulesPage() {
 
   async function saveEntry(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!form.class_id || !form.subject_id || !form.teacher_id || !form.day_of_week || !form.period_number || !year.trim()) {
-      setError("Select a class, subject, teacher, day, period, and academic year before saving.");
-      return;
-    }
     setSaving(true);
     setError("");
     try {
-      const selectedSlot = activePeriods.find((slot) => Number(slot.period_number) === Number(form.period_number));
+      const selectedSlot = timeSlots.find((slot) => Number(slot.period_number) === Number(form.period_number));
       const response = await fetch(form.id ? `/api/admin/schedules/${form.id}` : "/api/admin/schedules", { method: form.id ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, academic_year: year, class_id: Number(form.class_id), subject_id: Number(form.subject_id), teacher_id: Number(form.teacher_id), period_number: Number(form.period_number), start_time: selectedSlot?.start_time, end_time: selectedSlot?.end_time }) });
       const payload = (await response.json()) as ApiResponse<unknown>;
       if (!response.ok || payload.success === false) throw new Error(payload.message || "Unable to save timetable entry");
@@ -193,7 +188,7 @@ export default function AdminSchedulesPage() {
           </div>
           <div className="text-sm font-semibold text-slate-700">
             Periods
-            <div className="mt-2 rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-800">{activePeriods.length}</div>
+            <div className="mt-2 rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-800">{timeSlots.filter((slot) => slot.period_number != null).length}</div>
           </div>
         </section>
 
@@ -206,7 +201,7 @@ export default function AdminSchedulesPage() {
             editable
             onAdd={(classId, day, periodNumber) => openNewEntry(classId, periodNumber, day)}
             onEdit={editEntry}
-            onDelete={(id) => void deleteEntry(id)}
+            onDelete={(entry) => void deleteEntry(entry.id)}
           />
         )}
 
@@ -215,11 +210,11 @@ export default function AdminSchedulesPage() {
             <form onSubmit={saveEntry} className="w-full max-w-2xl space-y-4 rounded-2xl bg-white p-6 shadow-2xl">
               <div className="flex items-center justify-between"><div><p className="text-xs font-black uppercase tracking-[0.16em] text-[#b60f17]">{form.id ? "Edit timetable entry" : "New timetable entry"}</p><h2 className="mt-1 text-2xl font-black text-slate-900">Class period assignment</h2></div><button type="button" onClick={() => setFormOpen(false)} className="text-2xl font-bold text-slate-400" aria-label="Close">×</button></div>
               <div className="grid gap-4 md:grid-cols-2">
-                <label className="text-sm font-bold text-slate-700">Class<select required value={form.class_id} onChange={(event) => setForm((current) => ({ ...current, class_id: event.target.value, subject_id: "" }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select class</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.display_name ?? item.name}</option>)}</select></label>
-                <label className="text-sm font-bold text-slate-700">Subject<select required value={form.subject_id} onChange={(event) => setForm((current) => ({ ...current, subject_id: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select subject</option>{formSubjects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><span className="mt-1 block text-xs font-normal text-slate-500">All subjects are available to every teacher.</span></label>
-                <label className="text-sm font-bold text-slate-700">Teacher<select required value={form.teacher_id} onChange={(event) => setForm((current) => ({ ...current, teacher_id: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select teacher</option>{teachers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-                <label className="text-sm font-bold text-slate-700">Day<select required value={form.day_of_week} onChange={(event) => setForm((current) => ({ ...current, day_of_week: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2">{DAYS.map((day) => <option key={day}>{day}</option>)}</select></label>
-                <label className="text-sm font-bold text-slate-700">Period<select required value={form.period_number} onChange={(event) => setForm((current) => ({ ...current, period_number: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2">{activePeriods.map((slot) => <option key={slot.id} value={slot.period_number!}>Period {slot.period_number} · {slot.start_time.slice(0, 5)}–{slot.end_time.slice(0, 5)}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Class<select value={form.class_id} onChange={(event) => setForm((current) => ({ ...current, class_id: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select class</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.display_name ?? item.name}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Subject<select value={form.subject_id} onChange={(event) => setForm((current) => ({ ...current, subject_id: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select subject</option>{formSubjects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Teacher<select value={form.teacher_id} onChange={(event) => setForm((current) => ({ ...current, teacher_id: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"><option value="">Select teacher</option>{teachers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Day<select value={form.day_of_week} onChange={(event) => setForm((current) => ({ ...current, day_of_week: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2">{DAYS.map((day) => <option key={day}>{day}</option>)}</select></label>
+                <label className="text-sm font-bold text-slate-700">Period<select value={form.period_number} onChange={(event) => setForm((current) => ({ ...current, period_number: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2">{timeSlots.filter((slot) => slot.period_number != null).map((slot) => <option key={slot.id} value={slot.period_number!}>Period {slot.period_number} · {slot.start_time.slice(0, 5)}–{slot.end_time.slice(0, 5)}</option>)}</select></label>
                 <label className="text-sm font-bold text-slate-700">Room <span className="font-normal text-slate-400">(optional)</span><input value={form.room} onChange={(event) => setForm((current) => ({ ...current, room: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="e.g. Room 101" /></label>
               </div>
               <div className="flex justify-end gap-3"><button type="button" onClick={() => setFormOpen(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700">Cancel</button><button disabled={saving} type="submit" className="rounded-lg bg-[#b60f17] px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{saving ? "Saving..." : "Save entry"}</button></div>

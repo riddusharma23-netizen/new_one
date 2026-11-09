@@ -224,6 +224,7 @@ export default function FeatureCards() {
 
                   <Link
                     href={`/facilities/${card.slug}`}
+                    data-card-animate
                     className="
                       group
                       relative

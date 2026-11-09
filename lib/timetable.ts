@@ -3,9 +3,11 @@ import { query, queryOne, withTransaction } from "@/lib/db";
 import { getSchoolTimings, toSeconds } from "@/lib/school-timings";
 import {
   DEFAULT_DAYS,
+  DEFAULT_ADDITIONAL_COLUMN_HEADING,
   getSubjectColor,
   normalizeSchoolData,
   type MasterScheduleData,
+  type MasterScheduleEntry,
   type SchoolDay,
 } from "@/lib/schedule-master";
 import { auditTimetable, ensureTimetableSchema, insertId } from "@/lib/timetable-schema";
@@ -285,15 +287,14 @@ type LoadedAssignment = {
   notes: string | null;
 };
 
-async function loadAssignments(versionId: number) {
+async function loadAssignments(versionId: number, assignmentId?: number, teacherId?: number) {
   return query<LoadedAssignment>(
     `SELECT a.id, g.version_id, g.class_id, CONCAT(c.class_name, IF(c.section IS NULL OR c.section='', '', CONCAT('-', c.section))) AS class_name,
             g.id AS group_id, g.name AS group_name, g.student_group_id, sg.name AS student_group_name,
             a.subject_id, sub.subject_name, a.room_id, r.name AS room, g.day_of_week, g.time_slot_id,
             ts.start_time, ts.end_time, ts.slot_order, a.notes,
-            GROUP_CONCAT(t.id ORDER BY t.name) AS teacher_ids,
-            GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ' · ') AS teacher_names,
-            GROUP_CONCAT(COALESCE(NULLIF(t.short_name,''), t.name) ORDER BY t.name SEPARATOR ', ') AS teacher_shorts
+            t.id AS teacher_ids, t.name AS teacher_names,
+            COALESCE(NULLIF(t.short_name,''), t.name) AS teacher_shorts
      FROM schedule_assignments a
      JOIN schedule_groups g ON g.id = a.schedule_group_id
      JOIN classes c ON c.id = g.class_id
@@ -303,11 +304,46 @@ async function loadAssignments(versionId: number) {
      LEFT JOIN class_groups sg ON sg.id = g.student_group_id
      LEFT JOIN schedule_assignment_teachers sat ON sat.assignment_id = a.id
      LEFT JOIN teachers t ON t.id = sat.teacher_id
-     WHERE g.version_id = ?
-     GROUP BY a.id
+     WHERE g.version_id = ? ${assignmentId ? "AND a.id = ?" : ""} ${teacherId ? "AND t.id = ?" : ""}
+     GROUP BY a.id, t.id
      ORDER BY FIELD(g.day_of_week,'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'), ts.slot_order, g.sort_order, a.id`,
-    [versionId]
+    [versionId, ...(assignmentId ? [assignmentId] : []), ...(teacherId ? [teacherId] : [])]
   );
+}
+
+function toScheduleEntry(
+  row: LoadedAssignment,
+  academicYear: string,
+  status: MasterScheduleEntry["status"],
+  slots: Awaited<ReturnType<typeof getSchoolTimings>>
+): MasterScheduleEntry {
+  return {
+    id: row.id,
+    academic_year: academicYear,
+    class_id: row.class_id,
+    class_name: row.class_name,
+    group_id: row.group_id,
+    group_name: row.group_name,
+    student_group_name: row.student_group_name,
+    subject_id: row.subject_id,
+    subject_name: row.subject_name,
+    teacher_id: row.teacher_ids ? Number(row.teacher_ids) : null,
+    teacher_name: row.teacher_shorts || row.teacher_names,
+    teacher_names: row.teacher_names,
+    room: row.room,
+    room_id: row.room_id,
+    day_of_week: row.day_of_week,
+    start_time: row.start_time,
+    end_time: row.end_time,
+    slot_order: row.slot_order,
+    period_number: periodNumberFromSlots(row.time_slot_id, slots),
+    time_slot_id: row.time_slot_id,
+    entry_type: "SUBJECT",
+    display_label: row.subject_name || row.group_name,
+    notes: row.notes,
+    color: getSubjectColor(row.subject_name || row.group_name || "Subject"),
+    status,
+  };
 }
 
 function periodNumberFromSlots(slotId: number, slots: Awaited<ReturnType<typeof getSchoolTimings>>) {
@@ -321,35 +357,15 @@ export async function buildMasterData(academicYear: string, versionId?: number |
     ? await queryOne<TimetableVersion>("SELECT * FROM timetable_versions WHERE id = ?", [versionId])
     : await getPublishedVersion(academicYear);
   const timeSlots = options.time_slots;
+  const columnSetting = await queryOne<{ setting_value: string | null }>(
+    "SELECT setting_value FROM settings WHERE setting_key = ? LIMIT 1",
+    ["timetable_additional_column_heading"]
+  );
+  const additionalColumnHeading = columnSetting?.setting_value?.trim() || DEFAULT_ADDITIONAL_COLUMN_HEADING;
 
   if (version) {
     const assignments = await loadAssignments(version.id);
-    const entries = assignments.map((row) => ({
-      id: row.id,
-      academic_year: academicYear,
-      class_id: row.class_id,
-      class_name: row.class_name,
-      group_id: row.group_id,
-      group_name: row.group_name,
-      student_group_name: row.student_group_name,
-      subject_id: row.subject_id,
-      subject_name: row.subject_name,
-      teacher_id: row.teacher_ids ? Number(row.teacher_ids.split(",")[0]) : null,
-      teacher_name: row.teacher_shorts || row.teacher_names,
-      teacher_names: row.teacher_names,
-      room: row.room,
-      day_of_week: row.day_of_week,
-      start_time: row.start_time,
-      end_time: row.end_time,
-      slot_order: row.slot_order,
-      period_number: periodNumberFromSlots(row.time_slot_id, timeSlots),
-      time_slot_id: row.time_slot_id,
-      entry_type: "SUBJECT" as const,
-      display_label: row.subject_name || row.group_name,
-      notes: row.notes,
-      color: getSubjectColor(row.subject_name || row.group_name),
-      status: version.status,
-    }));
+    const entries = assignments.map((row) => toScheduleEntry(row, academicYear, version.status, timeSlots));
     const data = normalizeSchoolData({
       classes: options.classes as Array<Record<string, unknown>>,
       teachers: options.teachers as Array<Record<string, unknown>>,
@@ -367,11 +383,14 @@ export async function buildMasterData(academicYear: string, versionId?: number |
     }));
     data.schedule_entries = data.schedule_entries.map((entry, index) => ({
       ...entry,
+      time_slot_id: entries[index]?.time_slot_id ?? entry.time_slot_id ?? null,
+      room_id: entries[index]?.room_id ?? null,
       group_id: entries[index]?.group_id,
       group_name: entries[index]?.group_name ?? entry.group_name,
       student_group_name: entries[index]?.student_group_name ?? null,
       teacher_names: entries[index]?.teacher_names ?? entry.teacher_name,
     }));
+    data.additional_column_heading = additionalColumnHeading;
     data.version = {
       id: version.id,
       name: version.name,
@@ -382,7 +401,7 @@ export async function buildMasterData(academicYear: string, versionId?: number |
   }
 
   if (!fallbackLegacy) {
-    return normalizeSchoolData({
+    const data = normalizeSchoolData({
       classes: options.classes as Array<Record<string, unknown>>,
       teachers: options.teachers as Array<Record<string, unknown>>,
       subjects: options.subjects as Array<Record<string, unknown>>,
@@ -390,6 +409,8 @@ export async function buildMasterData(academicYear: string, versionId?: number |
       academicYear,
       timeSlots,
     });
+    data.additional_column_heading = additionalColumnHeading;
+    return data;
   }
 
   const legacy = await query<Record<string, unknown>>(
@@ -403,7 +424,7 @@ export async function buildMasterData(academicYear: string, versionId?: number |
      WHERE s.status = 'ACTIVE' AND s.academic_year = ?`,
     [academicYear]
   );
-  return normalizeSchoolData({
+  const data = normalizeSchoolData({
     classes: options.classes as Array<Record<string, unknown>>,
     teachers: options.teachers as Array<Record<string, unknown>>,
     subjects: options.subjects as Array<Record<string, unknown>>,
@@ -411,13 +432,15 @@ export async function buildMasterData(academicYear: string, versionId?: number |
     academicYear,
     timeSlots,
   });
+  data.additional_column_heading = additionalColumnHeading;
+  return data;
 }
 
 export async function loadPeriodGroups(versionId: number, classId: number, day: string, timeSlotId: number) {
   const groups = await query<ScheduleGroupRow & { student_group_name: string | null }>(
     `SELECT g.*, sg.name AS student_group_name
      FROM schedule_groups g
-     LEFT JOIN \`groups\` sg ON sg.id = g.student_group_id
+     LEFT JOIN class_groups sg ON sg.id = g.student_group_id
      WHERE g.version_id = ? AND g.class_id = ? AND g.day_of_week = ? AND g.time_slot_id = ?
      ORDER BY g.sort_order, g.id`,
     [versionId, classId, day, timeSlotId]
@@ -478,8 +501,18 @@ type OccupancyRow = {
   student_group_name: string | null;
 };
 
-async function occupancy(versionId: number, excludeGroupIds: number[] = []) {
-  const extra = excludeGroupIds.length ? `AND g.id NOT IN (${excludeGroupIds.map(() => "?").join(",")})` : "";
+async function occupancy(versionId: number, excludeGroupIds: number[] = [], excludeAssignmentIds: number[] = []) {
+  const filters: string[] = [];
+  const params: number[] = [versionId];
+  if (excludeGroupIds.length) {
+    filters.push(`g.id NOT IN (${excludeGroupIds.map(() => "?").join(",")})`);
+    params.push(...excludeGroupIds);
+  }
+  if (excludeAssignmentIds.length) {
+    filters.push(`a.id NOT IN (${excludeAssignmentIds.map(() => "?").join(",")})`);
+    params.push(...excludeAssignmentIds);
+  }
+  const extra = filters.length ? `AND ${filters.join(" AND ")}` : "";
   return query<OccupancyRow>(
     `SELECT a.id AS assignment_id, g.id AS group_id, g.class_id,
             CONCAT(c.class_name, IF(c.section IS NULL OR c.section='', '', CONCAT('-', c.section))) AS class_name,
@@ -491,11 +524,11 @@ async function occupancy(versionId: number, excludeGroupIds: number[] = []) {
      JOIN classes c ON c.id = g.class_id
      JOIN time_slots ts ON ts.id = g.time_slot_id
      LEFT JOIN rooms r ON r.id = a.room_id
-     LEFT JOIN \`groups\` sg ON sg.id = g.student_group_id
+     LEFT JOIN class_groups sg ON sg.id = g.student_group_id
      LEFT JOIN schedule_assignment_teachers sat ON sat.assignment_id = a.id
      LEFT JOIN teachers t ON t.id = sat.teacher_id
      WHERE g.version_id = ? ${extra}`,
-    [versionId, ...excludeGroupIds]
+    params
   );
 }
 
@@ -510,6 +543,7 @@ export async function detectConflicts(options: {
   timeSlotId: number;
   groups: GroupInput[];
   excludeGroupIds?: number[];
+  excludeAssignmentIds?: number[];
 }) {
   const conflicts: ConflictItem[] = [];
   const slot = (await getSchoolTimings()).find((item) => item.id === options.timeSlotId);
@@ -521,7 +555,7 @@ export async function detectConflicts(options: {
     conflicts.push({ type: "PERIOD", message: "End time must be after start time." });
   }
 
-  const occupied = await occupancy(options.versionId, options.excludeGroupIds);
+  const occupied = await occupancy(options.versionId, options.excludeGroupIds, options.excludeAssignmentIds);
   const usedStudentGroups = new Set<number>();
 
   for (const group of options.groups) {
@@ -553,9 +587,6 @@ export async function detectConflicts(options: {
         );
         if (!subject) conflicts.push({ type: "VALIDATION", message: "A selected subject no longer exists." });
         else if (subject.status === "INACTIVE") conflicts.push({ type: "VALIDATION", message: `${subject.subject_name} is inactive and cannot be assigned.` });
-        else if (subject.class_id && subject.class_id !== options.classId) {
-          conflicts.push({ type: "VALIDATION", message: `${subject.subject_name} is not assigned to this class.` });
-        }
       }
       if (assignment.room_id) {
         const room = await queryOne<{ name: string; active: string }>("SELECT name, active FROM rooms WHERE id = ?", [assignment.room_id]);
@@ -695,22 +726,238 @@ export async function savePeriod(options: {
   return loadPeriodGroups(options.versionId, options.classId, options.day, options.timeSlotId);
 }
 
-export async function deleteAssignment(assignmentId: number, adminId: number | null) {
+async function assertDraftVersion(versionId: number) {
+  const version = await queryOne<TimetableVersion>("SELECT * FROM timetable_versions WHERE id = ?", [versionId]);
+  if (!version) throw new Error("Timetable version not found.");
+  if (version.status !== "DRAFT") throw new Error("Only a draft timetable can be edited.");
+  return version;
+}
+
+function guardConflicts(conflicts: ConflictItem[], override: boolean, canOverride: boolean) {
+  if (conflicts.length && !override) throw new TimetableConflictError(conflicts);
+  if (conflicts.length && override && !canOverride) throw new TimetableConflictError(conflicts);
+}
+
+export async function appendAssignment(options: {
+  versionId: number;
+  classId: number;
+  day: string;
+  timeSlotId: number;
+  subjectId: number;
+  teacherId: number;
+  roomId: number | null;
+  notes?: string | null;
+  override: boolean;
+  adminId: number | null;
+  canOverride: boolean;
+}) {
+  const version = await assertDraftVersion(options.versionId);
+  const existingGroups = await query<ScheduleGroupRow>(
+    `SELECT * FROM schedule_groups
+     WHERE version_id = ? AND class_id = ? AND day_of_week = ? AND time_slot_id = ?
+     ORDER BY sort_order, id`,
+    [options.versionId, options.classId, options.day, options.timeSlotId]
+  );
+  const target = existingGroups[0];
+  const conflicts = await detectConflicts({
+    versionId: options.versionId,
+    classId: options.classId,
+    day: options.day,
+    timeSlotId: options.timeSlotId,
+    groups: [{
+      name: target?.name ?? "Class",
+      student_group_id: target?.student_group_id ?? null,
+      assignments: [{
+        subject_id: options.subjectId,
+        room_id: options.roomId,
+        teacher_ids: [options.teacherId],
+        notes: options.notes ?? null,
+      }],
+    }],
+  });
+  guardConflicts(conflicts, options.override, options.canOverride);
+
+  const assignmentId = await withTransaction(async (connection) => {
+    let groupId = target?.id;
+    if (!groupId) {
+      groupId = await insertId(
+        connection,
+        `INSERT INTO schedule_groups (version_id, class_id, student_group_id, time_slot_id, day_of_week, name, sort_order)
+         VALUES (?, ?, NULL, ?, ?, 'Class', 1)`,
+        [options.versionId, options.classId, options.timeSlotId, options.day]
+      );
+    }
+    const createdId = await insertId(
+      connection,
+      "INSERT INTO schedule_assignments (schedule_group_id, subject_id, room_id, notes) VALUES (?, ?, ?, ?)",
+      [groupId, options.subjectId, options.roomId, options.notes ?? null]
+    );
+    await connection.execute(
+      "INSERT INTO schedule_assignment_teachers (assignment_id, teacher_id) VALUES (?, ?)",
+      [createdId, options.teacherId]
+    );
+    return createdId;
+  });
+
+  await auditTimetable(
+    options.adminId,
+    options.override ? "OVERRIDE_APPEND" : "APPEND_ASSIGNMENT",
+    "Added a teacher to a period",
+    options.versionId,
+    { assignmentId, classId: options.classId, day: options.day, timeSlotId: options.timeSlotId, conflicts }
+  );
+  const slots = await getSchoolTimings();
+  const [row] = await loadAssignments(options.versionId, assignmentId, options.teacherId);
+  if (!row) throw new Error("The new assignment could not be loaded.");
+  return toScheduleEntry(row, version.academic_year, version.status, slots);
+}
+
+export async function updateAssignment(options: {
+  assignmentId: number;
+  targetTeacherId?: number | null;
+  subjectId: number;
+  teacherId: number;
+  roomId: number | null;
+  notes?: string | null;
+  override: boolean;
+  adminId: number | null;
+  canOverride: boolean;
+}) {
+  const current = await queryOne<{
+    id: number;
+    schedule_group_id: number;
+    version_id: number;
+    class_id: number;
+    day_of_week: string;
+    time_slot_id: number;
+    group_name: string;
+    student_group_id: number | null;
+    notes: string | null;
+  }>(
+    `SELECT a.id, a.schedule_group_id, a.notes, g.version_id, g.class_id, g.day_of_week, g.time_slot_id,
+            g.name AS group_name, g.student_group_id
+     FROM schedule_assignments a
+     JOIN schedule_groups g ON g.id = a.schedule_group_id
+     WHERE a.id = ?`,
+    [options.assignmentId]
+  );
+  if (!current) return null;
+  const version = await assertDraftVersion(current.version_id);
+  const currentTeachers = await query<{ teacher_id: number }>(
+    "SELECT teacher_id FROM schedule_assignment_teachers WHERE assignment_id = ?",
+    [options.assignmentId]
+  );
+  const targetTeacherId = options.targetTeacherId ?? null;
+  if (targetTeacherId && !currentTeachers.some((item) => item.teacher_id === targetTeacherId)) return null;
+  if (
+    targetTeacherId &&
+    options.teacherId !== targetTeacherId &&
+    currentTeachers.some((item) => item.teacher_id === options.teacherId)
+  ) {
+    throw new TimetableConflictError([{
+      type: "TEACHER",
+      message: "That teacher is already assigned to this period.",
+    }]);
+  }
+  const shouldSplit = Boolean(
+    targetTeacherId && currentTeachers.some((item) => item.teacher_id !== targetTeacherId)
+  );
+  const notes = options.notes === undefined ? current.notes : options.notes;
+  const conflicts = await detectConflicts({
+    versionId: current.version_id,
+    classId: current.class_id,
+    day: current.day_of_week,
+    timeSlotId: current.time_slot_id,
+    groups: [{
+      name: current.group_name,
+      student_group_id: current.student_group_id,
+      assignments: [{
+        subject_id: options.subjectId,
+        room_id: options.roomId,
+        teacher_ids: [options.teacherId],
+        notes,
+      }],
+    }],
+    excludeAssignmentIds: [options.assignmentId],
+  });
+  guardConflicts(conflicts, options.override, options.canOverride);
+
+  const savedAssignmentId = await withTransaction(async (connection) => {
+    let assignmentId = options.assignmentId;
+    if (shouldSplit) {
+      assignmentId = await insertId(
+        connection,
+        "INSERT INTO schedule_assignments (schedule_group_id, subject_id, room_id, notes) VALUES (?, ?, ?, ?)",
+        [current.schedule_group_id, options.subjectId, options.roomId, notes]
+      );
+      await connection.execute(
+        "DELETE FROM schedule_assignment_teachers WHERE assignment_id = ? AND teacher_id = ?",
+        [options.assignmentId, targetTeacherId]
+      );
+    } else {
+      await connection.execute(
+        "UPDATE schedule_assignments SET subject_id = ?, room_id = ?, notes = ? WHERE id = ?",
+        [options.subjectId, options.roomId, notes, options.assignmentId]
+      );
+      await connection.execute("DELETE FROM schedule_assignment_teachers WHERE assignment_id = ?", [options.assignmentId]);
+    }
+    await connection.execute(
+      "INSERT INTO schedule_assignment_teachers (assignment_id, teacher_id) VALUES (?, ?)",
+      [assignmentId, options.teacherId]
+    );
+    return assignmentId;
+  });
+
+  await auditTimetable(options.adminId, options.override ? "OVERRIDE_UPDATE" : "UPDATE_ASSIGNMENT", "Updated one timetable assignment", current.version_id, {
+    assignmentId: options.assignmentId,
+    savedAssignmentId,
+    targetTeacherId,
+    conflicts,
+  });
+  const slots = await getSchoolTimings();
+  const [row] = await loadAssignments(current.version_id, savedAssignmentId, options.teacherId);
+  if (!row) throw new Error("The updated assignment could not be loaded.");
+  return toScheduleEntry(row, version.academic_year, version.status, slots);
+}
+
+export async function deleteAssignment(assignmentId: number, adminId: number | null, teacherId?: number | null) {
   const row = await queryOne<{ schedule_group_id: number; version_id: number }>(
     `SELECT a.schedule_group_id, g.version_id
      FROM schedule_assignments a JOIN schedule_groups g ON g.id = a.schedule_group_id WHERE a.id = ?`,
     [assignmentId]
   );
   if (!row) return false;
+  await assertDraftVersion(row.version_id);
+  if (teacherId) {
+    const teacher = await queryOne<{ teacher_id: number }>(
+      "SELECT teacher_id FROM schedule_assignment_teachers WHERE assignment_id = ? AND teacher_id = ?",
+      [assignmentId, teacherId]
+    );
+    if (!teacher) return false;
+  }
   await withTransaction(async (connection) => {
-    await connection.execute("DELETE FROM schedule_assignment_teachers WHERE assignment_id = ?", [assignmentId]);
-    await connection.execute("DELETE FROM schedule_assignments WHERE id = ?", [assignmentId]);
+    if (teacherId) {
+      await connection.execute(
+        "DELETE FROM schedule_assignment_teachers WHERE assignment_id = ? AND teacher_id = ?",
+        [assignmentId, teacherId]
+      );
+      const [teachers] = await connection.query(
+        "SELECT teacher_id FROM schedule_assignment_teachers WHERE assignment_id = ?",
+        [assignmentId]
+      );
+      if (!(teachers as unknown[]).length) {
+        await connection.execute("DELETE FROM schedule_assignments WHERE id = ?", [assignmentId]);
+      }
+    } else {
+      await connection.execute("DELETE FROM schedule_assignment_teachers WHERE assignment_id = ?", [assignmentId]);
+      await connection.execute("DELETE FROM schedule_assignments WHERE id = ?", [assignmentId]);
+    }
     const [left] = await connection.query("SELECT id FROM schedule_assignments WHERE schedule_group_id = ?", [row.schedule_group_id]);
     if (!(left as unknown[]).length) {
       await connection.execute("DELETE FROM schedule_groups WHERE id = ?", [row.schedule_group_id]);
     }
   });
-  await auditTimetable(adminId, "DELETE_ASSIGNMENT", "Deleted timetable assignment", row.version_id, { assignmentId });
+  await auditTimetable(adminId, teacherId ? "DELETE_TEACHER_ASSIGNMENT" : "DELETE_ASSIGNMENT", "Deleted timetable assignment", row.version_id, { assignmentId, teacherId: teacherId ?? null });
   return true;
 }
 

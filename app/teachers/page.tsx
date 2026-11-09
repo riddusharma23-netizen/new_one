@@ -188,7 +188,7 @@ export default function Teachers() {
   
           -translate-x-1/2
   
-          w-[800px]
+          w-[min(800px,100%)]
           h-[800px]
   
           rounded-full
@@ -428,7 +428,7 @@ export default function Teachers() {
 
     -translate-x-1/2
 
-    w-[700px]
+    w-[min(700px,100%)]
     h-[700px]
 
     rounded-full
@@ -496,7 +496,7 @@ export default function Teachers() {
 
           rounded-[32px]
 
-          w-[320px]
+          w-[min(320px,calc(100vw-5rem))]
           sm:w-[430px]
 
           h-[450px]
@@ -713,7 +713,7 @@ border-[#F8F400]
     left-1/2
     -translate-x-1/2
 
-    w-[700px]
+    w-[min(700px,100%)]
     h-[700px]
 
     rounded-full
@@ -890,7 +890,7 @@ border-[#F8F400]
 
           rounded-[32px]
 
-          w-[320px]
+          w-[min(320px,calc(100vw-5rem))]
           sm:w-[430px]
 
           h-[450px]

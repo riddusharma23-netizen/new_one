@@ -4,6 +4,7 @@ import About from "@/components/about";
 import WhyChooseUs from "@/components/WhyChooseUs";
 // import Department from "@/components/Department";
 import StudentSays from "@/components/StudentSays";
+import HomeIntro from "@/components/HomeIntro";
 // import BlogSection from "@/components/BlogSection";
 // import Footer from "@/components/Footer";
 
@@ -15,6 +16,7 @@ const particles = Array.from({ length: 30 }, (_, i) => ({
 
 export default function Home() {
   return (
+    <HomeIntro>
     <main className="relative min-h-screen overflow-hidden">
       
       {/* Background */}
@@ -54,5 +56,6 @@ export default function Home() {
         {/* <Footer /> */}
       </div>
     </main>
+    </HomeIntro>
   );
 }

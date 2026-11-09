@@ -2,17 +2,25 @@
 
 import { useMemo, useState } from "react";
 import { BookOpen, Coffee, Pencil, Plus, Trash2, UtensilsCrossed } from "lucide-react";
-import { isTimetableGrade, type MasterScheduleData, type MasterScheduleEntry, type MasterTimeSlot } from "@/lib/schedule-master";
+import { getSubjectColor, isTimetableGrade, type MasterScheduleData, type MasterScheduleEntry, type MasterTimeSlot } from "@/lib/schedule-master";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
-const CELL_COLOURS = ["#e5f0ff", "#e4f6ed", "#f4eaff", "#fff1dc", "#fde8e5", "#fff4df", "#fcebdc"];
+
+type PeriodSlot = {
+  id: string;
+  subject: string;
+  teacherName: string;
+  roomId?: string;
+  entry: MasterScheduleEntry;
+};
 
 type Props = {
   data: MasterScheduleData;
   editable?: boolean;
+  onClassChange?: (classId: number) => void;
   onAdd?: (classId: number, day: string, periodNumber: number) => void;
   onEdit?: (entry: MasterScheduleEntry) => void;
-  onDelete?: (id: number) => void;
+  onDelete?: (entry: MasterScheduleEntry) => void;
 };
 
 function displayTime(value: string) {
@@ -21,9 +29,79 @@ function displayTime(value: string) {
   return Number.isFinite(hours) ? `${hours % 12 || 12}:${minutes} ${hours >= 12 ? "PM" : "AM"}` : value;
 }
 
-function subjectColour(subject: string) {
-  const total = subject.split("").reduce((sum, character) => sum + character.charCodeAt(0), 0);
-  return CELL_COLOURS[total % CELL_COLOURS.length];
+function periodsForDay(entries: MasterScheduleEntry[], day: string) {
+  const periods: { [periodId: number]: PeriodSlot[] } = {};
+  for (const entry of entries) {
+    if (entry.day_of_week !== day) continue;
+    const periodId = Number(entry.period_number);
+    if (!Number.isFinite(periodId) || periodId <= 0) continue;
+    const subject = entry.subject_name || entry.display_label || "Session";
+    const slot: PeriodSlot = {
+      id: `${entry.id}:${entry.teacher_id ?? "unassigned"}`,
+      subject,
+      teacherName: entry.teacher_names || entry.teacher_name || "Teacher unassigned",
+      roomId: entry.room_id != null ? String(entry.room_id) : undefined,
+      entry,
+    };
+    periods[periodId] = [...(periods[periodId] ?? []), slot];
+  }
+  return periods;
+}
+
+function slotsForColumn(periods: { [periodId: number]: PeriodSlot[] }, slot: MasterTimeSlot) {
+  const periodId = Number(slot.period_number);
+  return (periods[periodId] ?? []).filter((item) => item.entry.time_slot_id == null || item.entry.time_slot_id === slot.id);
+}
+
+function AssignmentCard({
+  slot,
+  day,
+  editable,
+  onEdit,
+  onDelete,
+}: {
+  slot: PeriodSlot;
+  day: string;
+  editable: boolean;
+  onEdit?: (entry: MasterScheduleEntry) => void;
+  onDelete?: (entry: MasterScheduleEntry) => void;
+}) {
+  const background = slot.entry.color || getSubjectColor(slot.subject);
+  const groupLabel = slot.entry.student_group_name || (slot.entry.group_name && slot.entry.group_name !== "Class" ? slot.entry.group_name : "");
+  return (
+    <article className="w-full min-w-0 rounded-md border border-white/70 p-2 text-center shadow-sm" style={{ backgroundColor: background }}>
+      {groupLabel ? <p className="mb-1 break-words text-[9px] font-bold text-[#694237]">{groupLabel}</p> : null}
+      <p className="break-words text-[10px] font-extrabold uppercase leading-snug text-[#542b24]">{slot.subject}</p>
+      <p className="mt-1 break-words text-[10px] leading-snug text-[#694237]">({slot.teacherName})</p>
+      {slot.entry.room ? <p className="mt-1 text-[9px] text-[#694237]">Room {slot.entry.room}</p> : null}
+      {editable ? (
+        <div className="mt-1.5 flex items-center justify-center gap-1">
+          {onEdit ? (
+            <button type="button" onClick={() => onEdit(slot.entry)} aria-label={`Edit ${slot.subject} on ${day}`} className="inline-flex items-center gap-0.5 rounded bg-white/80 px-1.5 py-0.5 text-[9px] font-bold text-[#9b251e] hover:bg-white">
+              <Pencil size={10} aria-hidden="true" /> Edit
+            </button>
+          ) : null}
+          {onDelete ? (
+            <button type="button" onClick={() => onDelete(slot.entry)} aria-label={`Delete ${slot.subject} on ${day}`} className="inline-flex items-center gap-0.5 rounded bg-white/80 px-1.5 py-0.5 text-[9px] font-bold text-red-700 hover:bg-white">
+              <Trash2 size={10} aria-hidden="true" /> Delete
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+function AssignButton({ hasItems, onClick }: { hasItems: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="mt-1 flex w-full items-center justify-center gap-1 rounded-md border border-dashed border-[#e7cbb8] bg-white/80 px-1 py-1 text-[10px] font-bold text-[#9b251e] hover:bg-[#fff5eb]"
+    >
+      <Plus size={11} aria-hidden="true" /> {hasItems ? "Add" : "Assign"}
+    </button>
+  );
 }
 
 function BreakItem({ slot }: { slot: MasterTimeSlot }) {
@@ -40,7 +118,7 @@ function BreakItem({ slot }: { slot: MasterTimeSlot }) {
   );
 }
 
-export default function TimetableBoard({ data, editable = false, onAdd, onEdit, onDelete }: Props) {
+export default function TimetableBoard({ data, editable = false, onClassChange, onAdd, onEdit, onDelete }: Props) {
   const [selectedClassId, setSelectedClassId] = useState("");
   const classes = useMemo(
     () => data.classes.filter(isTimetableGrade).sort((a, b) => a.display_name.localeCompare(b.display_name, undefined, { numeric: true })),
@@ -57,17 +135,14 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
   const start = periods[0]?.start_time;
   const end = periods.at(-1)?.end_time;
 
-  function entriesFor(day: (typeof DAYS)[number], slot: MasterTimeSlot) {
-    return entries.filter(
-      (entry) => entry.day_of_week === day && Number(entry.period_number) === Number(slot.period_number),
-    );
-  }
+  const periodsByDay = useMemo(() => {
+    const days: { [day: string]: { periods: { [periodId: number]: PeriodSlot[] } } } = {};
+    for (const day of DAYS) days[day] = { periods: periodsForDay(entries, day) };
+    return days;
+  }, [entries]);
 
-  function cellContent(day: (typeof DAYS)[number], slot: MasterTimeSlot) {
-    const items = entriesFor(day, slot);
-    const subject = items.map((entry) => entry.subject_name || entry.display_label).join(" / ");
-    const teacher = items.map((entry) => entry.teacher_name).filter(Boolean).join(" · ");
-    return { items, subject, teacher };
+  function cellSlots(day: (typeof DAYS)[number], slot: MasterTimeSlot) {
+    return slotsForColumn(periodsByDay[day]?.periods ?? {}, slot);
   }
 
   if (!classes.length) {
@@ -84,7 +159,10 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
               key={classRow.id}
               type="button"
               aria-pressed={active}
-              onClick={() => setSelectedClassId(String(classRow.id))}
+              onClick={() => {
+                setSelectedClassId(String(classRow.id));
+                onClassChange?.(classRow.id);
+              }}
               className={`min-w-24 shrink-0 rounded-md border px-4 py-2 text-xs font-bold transition ${
                 active
                   ? "border-[#b60f17] bg-[#b60f17] text-white shadow-sm"
@@ -133,33 +211,22 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
                 <tr key={day}>
                   <th scope="row" className="border-b border-r border-[#f2ddc5] bg-white px-3 py-2 text-left text-xs font-extrabold">{day}</th>
                   {periods.map((slot) => {
-                    const { items, subject, teacher } = cellContent(day, slot);
+                    const items = cellSlots(day, slot);
                     return (
                       <td
                         key={`${day}-${slot.id}`}
-                        className="h-[66px] border-b border-r border-[#f2ddc5] px-2 py-1.5 last:border-r-0"
-                        style={{ backgroundColor: items.length ? subjectColour(subject) : "#fffdfb" }}
+                        className="border-b border-r border-[#f2ddc5] p-1 align-top last:border-r-0"
                       >
                         {items.length ? (
-                          <div>
-                            <p className="text-[10px] font-extrabold uppercase">{subject}</p>
-                            <p className="mt-0.5 text-[10px] font-medium">({teacher || "—"})</p>
-                            {editable ? (
-                              <div className="mt-1 flex justify-center gap-2">
-                                {onEdit ? <button type="button" onClick={() => onEdit(items[0])} aria-label={`Edit ${subject} on ${day}`} className="text-[10px] font-bold text-[#9b251e] underline"><Pencil size={11} className="inline" /> Edit</button> : null}
-                                {onDelete ? <button type="button" onClick={() => onDelete(items[0].id)} aria-label={`Delete ${subject} on ${day}`} className="text-[10px] font-bold text-red-700 underline"><Trash2 size={11} className="inline" /> Delete</button> : null}
-                              </div>
-                            ) : null}
+                          <div className="space-y-1">
+                            {items.map((item) => (
+                              <AssignmentCard key={item.id} slot={item} day={day} editable={editable} onEdit={onEdit} onDelete={onDelete} />
+                            ))}
                           </div>
-                        ) : editable && currentClass && onAdd ? (
-                          <button
-                            type="button"
-                            onClick={() => onAdd(currentClass.id, day, Number(slot.period_number))}
-                            className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#80594d] hover:text-[#9b251e]"
-                          >
-                            <Plus size={12} /> Assign
-                          </button>
-                        ) : <span className="text-xs text-[#a78a7a]">—</span>}
+                        ) : editable ? null : <span className="text-sm text-[#bd9e8c]" aria-label="No class scheduled">—</span>}
+                        {editable && currentClass && onAdd ? (
+                          <AssignButton hasItems={items.length > 0} onClick={() => onAdd(currentClass.id, day, Number(slot.period_number))} />
+                        ) : null}
                       </td>
                     );
                   })}
@@ -174,28 +241,26 @@ export default function TimetableBoard({ data, editable = false, onAdd, onEdit, 
             <article key={day} className="overflow-hidden rounded-md border border-[#f2ddc5]">
               <h3 className="bg-[#fff3e8] px-3 py-1.5 text-xs font-extrabold">{day}</h3>
               {periods.map((slot) => {
-                const { items, subject, teacher } = cellContent(day, slot);
+                const items = cellSlots(day, slot);
                 return (
                   <div
                     key={slot.id}
-                    className="flex items-center justify-between gap-2 border-t border-[#f2ddc5] px-2 py-1.5 text-xs"
-                    style={{ backgroundColor: items.length ? subjectColour(subject) : "#ffffff" }}
+                    className="border-t border-[#f2ddc5] px-2 py-1.5 text-xs"
                   >
-                    <span className="shrink-0 text-[10px] font-semibold">P{slot.period_number} · {displayTime(slot.start_time)}</span>
-                    <div className="min-w-0 text-right">
-                      <p className="truncate font-bold">{subject || "Free"}</p>
-                      {items.length ? <p className="truncate text-[10px]">{teacher || "—"}</p> : null}
-                      {editable ? (
-                        items.length ? (
-                          <div className="flex justify-end gap-2">
-                            {onEdit ? <button type="button" onClick={() => onEdit(items[0])} className="text-[10px] font-bold underline">Edit</button> : null}
-                            {onDelete ? <button type="button" onClick={() => onDelete(items[0].id)} className="text-[10px] font-bold text-red-700 underline">Delete</button> : null}
-                          </div>
-                        ) : currentClass && onAdd ? (
-                          <button type="button" onClick={() => onAdd(currentClass.id, day, Number(slot.period_number))} className="text-[10px] font-bold text-[#9b251e] underline">Assign</button>
-                        ) : null
-                      ) : null}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="shrink-0 text-[10px] font-semibold">P{slot.period_number} · {displayTime(slot.start_time)}</span>
+                      {!items.length && !editable ? <p className="text-[10px] text-[#bd9e8c]">—</p> : null}
                     </div>
+                    {items.length ? (
+                      <div className="mt-1 space-y-1">
+                        {items.map((item) => (
+                          <AssignmentCard key={item.id} slot={item} day={day} editable={editable} onEdit={onEdit} onDelete={onDelete} />
+                        ))}
+                      </div>
+                    ) : null}
+                    {editable && currentClass && onAdd ? (
+                      <AssignButton hasItems={items.length > 0} onClick={() => onAdd(currentClass.id, day, Number(slot.period_number))} />
+                    ) : null}
                   </div>
                 );
               })}

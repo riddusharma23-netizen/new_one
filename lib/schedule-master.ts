@@ -1,6 +1,7 @@
 import { SCHOOL_DAYS } from "@/lib/validation";
 
 export const SCHOOL_NAME = "Smt. Champi Devi Inter College";
+export const DEFAULT_ADDITIONAL_COLUMN_HEADING = "Notes";
 export const DEFAULT_DAYS = SCHOOL_DAYS;
 
 export type SchoolDay = (typeof DEFAULT_DAYS)[number];
@@ -74,6 +75,7 @@ export type MasterScheduleEntry = {
   teacher_id?: number | null;
   teacher_name?: string | null;
   room?: string | null;
+  room_id?: number | null;
   day_of_week: SchoolDay;
   start_time?: string | null;
   end_time?: string | null;
@@ -106,6 +108,7 @@ export type MasterScheduleData = {
   teachers: MasterTeacher[];
   subjects: MasterSubject[];
   schedule_entries: MasterScheduleEntry[];
+  additional_column_heading: string;
 };
 
 // Retained only for reference while existing deployments migrate to the PDF timings below.
@@ -265,5 +268,6 @@ export function normalizeSchoolData(input: {
     teachers,
     subjects,
     schedule_entries: entries,
+    additional_column_heading: DEFAULT_ADDITIONAL_COLUMN_HEADING,
   };
 }
