@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import TimetableBoard from "@/components/TimetableBoard";
-import type { MasterScheduleData, MasterScheduleEntry, MasterTimeSlot } from "@/lib/schedule-master";
+import type { AssignmentType, MasterScheduleData, MasterScheduleEntry, MasterTimeSlot } from "@/lib/schedule-master";
 import AdditionalColumnSettings from "./AdditionalColumnSettings";
 import TimingSettings from "./TimingSettings";
 
@@ -18,7 +18,7 @@ type TimetableClass = { id: number; class_name: string; section: string; academi
 type Teacher = { id: number; name: string; short_name?: string | null; status: string };
 type Subject = { id: number; name: string; class_id: number; status: string };
 type StudentGroup = { id: number; name: string; class_id: number; active: string };
-type Room = { id: number; name: string; active: string };
+type Room = { id: number; name: string; room_type?: string; active: string };
 type BuilderOptions = {
   classes: TimetableClass[];
   teachers: Teacher[];
@@ -38,18 +38,20 @@ type SlotDraft = {
   day: string;
   periodNumber: number;
   timeSlotId: number;
+  assignmentType: AssignmentType;
   subjectId: string;
   teacherId: string;
   roomId: string;
   notes: string;
 };
-type Assignment = { subject_id: string; teacher_ids: string[]; room_id: string; notes: string };
+type Assignment = { assignment_type: AssignmentType; subject_id: string; teacher_ids: string[]; room_id: string; notes: string };
 type ScheduleGroup = { name: string; student_group_id: string; assignments: Assignment[] };
 type LoadedGroup = {
   name: string;
   student_group_id: number | null;
   assignments: Array<{
     subject_id: number | null;
+    assignment_type: AssignmentType;
     room_id: number | null;
     notes: string | null;
     teachers: Array<{ id: number }>;
@@ -76,7 +78,7 @@ async function requestData<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 function emptyAssignment(): Assignment {
-  return { subject_id: "", teacher_ids: [], room_id: "", notes: "" };
+  return { assignment_type: "theory", subject_id: "", teacher_ids: [], room_id: "", notes: "" };
 }
 
 function emptyGroup(number: number): ScheduleGroup {
@@ -107,6 +109,7 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
   const [refreshKey, setRefreshKey] = useState(0);
   const [newGroupName, setNewGroupName] = useState("");
   const [newRoomName, setNewRoomName] = useState("");
+  const [newRoomType, setNewRoomType] = useState("CLASSROOM");
   const [copyClassId, setCopyClassId] = useState("");
   const [copyDay, setCopyDay] = useState("");
   const [slotDraft, setSlotDraft] = useState<SlotDraft | null>(null);
@@ -192,6 +195,7 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
             name: group.name,
             student_group_id: group.student_group_id ? String(group.student_group_id) : "",
             assignments: group.assignments.map((assignment) => ({
+              assignment_type: assignment.assignment_type ?? "theory",
               subject_id: assignment.subject_id ? String(assignment.subject_id) : "",
               teacher_ids: assignment.teachers.map((teacher) => String(teacher.id)),
               room_id: assignment.room_id ? String(assignment.room_id) : "",
@@ -258,6 +262,7 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
       day: targetDay,
       periodNumber,
       timeSlotId: slot.id,
+      assignmentType: "theory",
       subjectId: "",
       teacherId: "",
       roomId: "",
@@ -281,6 +286,7 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
       day: entry.day_of_week,
       periodNumber: Number(entry.period_number ?? slot.period_number ?? 0),
       timeSlotId: slot.id,
+      assignmentType: entry.assignment_type ?? "theory",
       subjectId: entry.subject_id ? String(entry.subject_id) : "",
       teacherId: entry.teacher_id ? String(entry.teacher_id) : "",
       roomId: entry.room_id ? String(entry.room_id) : "",
@@ -308,6 +314,7 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
       return;
     }
     const payload = {
+      assignment_type: slotDraft.assignmentType,
       subject_id: Number(slotDraft.subjectId),
       teacher_id: Number(slotDraft.teacherId),
       room_id: slotDraft.roomId ? Number(slotDraft.roomId) : null,
@@ -337,10 +344,7 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
         });
       mergeSavedEntry(saved, slotDraft);
       setSlotDraft(null);
-      const published = await publishSavedChanges();
-      if (published) {
-        setNotice(slotDraft.mode === "edit" ? "Assignment updated and published to the website." : "Teacher added and published to the website.");
-      }
+      setNotice("Assignment saved to the draft. Publish the timetable when it is ready.");
       setRefreshKey((value) => value + 1);
     } catch (reason) {
       if (reason instanceof ApiRequestError && reason.conflicts.length && !override) {
@@ -372,8 +376,7 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
           ),
         }
         : current);
-      const published = await publishSavedChanges();
-      if (published) setNotice("Assignment removed and published to the website.");
+      setNotice("Assignment removed from the draft. Publish the timetable when it is ready.");
       setRefreshKey((value) => value + 1);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Unable to delete this assignment.");
@@ -410,6 +413,7 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
         name: group.name.trim(),
         student_group_id: group.student_group_id ? Number(group.student_group_id) : null,
         assignments: group.assignments.map((assignment) => ({
+          assignment_type: assignment.assignment_type,
           subject_id: Number(assignment.subject_id),
           teacher_ids: assignment.teacher_ids.map(Number),
           room_id: assignment.room_id ? Number(assignment.room_id) : null,
@@ -427,8 +431,7 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
       });
       setDirty(false);
       setEditorOpen(false);
-      const published = await publishSavedChanges();
-      if (published) setNotice("Period saved and published to the website.");
+      setNotice("Period saved to the draft. Publish the timetable when it is ready.");
       setRefreshKey((value) => value + 1);
     } catch (reason) {
       if (reason instanceof ApiRequestError && reason.conflicts.length && !override) {
@@ -476,30 +479,6 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
     }
   }
 
-  async function publishSavedChanges(override = false): Promise<boolean> {
-    if (!options) return false;
-    try {
-      await requestData(`/api/admin/timetable/versions/${options.draft.id}/publish`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ override }),
-      });
-    } catch (reason) {
-      if (reason instanceof ApiRequestError && reason.conflicts.length && !override) {
-        const detail = reason.conflicts.map((item) => item.message).join("\n");
-        if (window.confirm(`${reason.message}\n\n${detail}\n\nPublish anyway with an audited conflict override?`)) {
-          return publishSavedChanges(true);
-        }
-      }
-      setError(reason instanceof Error ? `Saved as a draft, but could not publish: ${reason.message}` : "Saved as a draft, but could not publish.");
-      setNotice("This change is not visible on the public timetable yet.");
-      return false;
-    }
-
-    await loadOptions();
-    return true;
-  }
-
   async function copySchedule(targetClassId: string, targetDay: string, override = false) {
     if (!options || !classId || !targetClassId || !targetDay) return;
     if (!override && !window.confirm(`Replace ${targetDay} for ${options.classes.find((item) => String(item.id) === targetClassId)?.display_name ?? "the selected class"} with ${day} from ${currentClass?.display_name ?? "the selected class"}? An empty source day will clear the target day.`)) return;
@@ -519,8 +498,7 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
         }),
       });
       setDirty(false);
-      const published = await publishSavedChanges();
-      if (published) setNotice(`Copied ${day} to ${targetDay} and published to the website.`);
+      setNotice(`Copied ${day} to ${targetDay} in the draft. Publish the timetable when it is ready.`);
       setRefreshKey((value) => value + 1);
     } catch (reason) {
       if (reason instanceof ApiRequestError && reason.conflicts.length && !override) {
@@ -563,10 +541,11 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
       await requestData("/api/admin/rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newRoomName.trim(), room_type: "CLASSROOM" }),
+        body: JSON.stringify({ name: newRoomName.trim(), room_type: newRoomType }),
       });
       setNewRoomName("");
-      setNotice("Classroom created.");
+      setNewRoomType("CLASSROOM");
+      setNotice("Room created.");
       await loadOptions();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Unable to create classroom.");
@@ -679,9 +658,13 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
                   </form>
                 </section>
                 <section className="rounded-xl border border-[#f2ddc5] p-4">
-                  <h3 className="text-sm font-bold text-slate-800">Add classroom</h3>
+                  <h3 className="text-sm font-bold text-slate-800">Add classroom / lab</h3>
                   <form onSubmit={(event) => void createRoom(event)} className="mt-3 flex flex-wrap gap-2">
                     <input required value={newRoomName} onChange={(event) => setNewRoomName(event.target.value)} placeholder="e.g. Room 101" className="min-w-52 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                    <select value={newRoomType} onChange={(event) => setNewRoomType(event.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                      <option value="CLASSROOM">Classroom</option>
+                      <option value="LABORATORY">Laboratory</option>
+                    </select>
                     <button className="rounded-lg bg-[#b60f17] px-3 py-2 text-sm font-bold text-white">Add room</button>
                   </form>
                 </section>
@@ -721,8 +704,14 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
                 {group.assignments.map((assignment, assignmentIndex) => {
                   const assignmentKey = `${groupIndex}-${assignmentIndex}`;
                   return (
-                    <fieldset key={assignmentIndex} className="grid gap-3 rounded-lg border border-white bg-white p-3 md:grid-cols-2 xl:grid-cols-[1fr_1.4fr_0.8fr_1fr_auto]">
-                      <legend className="px-1 text-xs font-extrabold text-slate-700">Subject + teacher {assignmentIndex + 1}</legend>
+                    <fieldset key={assignmentIndex} className="grid gap-3 rounded-lg border border-white bg-white p-3 md:grid-cols-2 xl:grid-cols-[0.8fr_1fr_1.4fr_0.8fr_1fr_auto]">
+                      <legend className="px-1 text-xs font-extrabold text-slate-700">Assignment {assignmentIndex + 1}</legend>
+                      <label className="text-xs font-bold text-slate-700">Class type
+                        <select value={assignment.assignment_type} onChange={(event) => updateAssignment(groupIndex, assignmentIndex, { assignment_type: event.target.value === "practical" ? "practical" : "theory" })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                          <option value="theory">Theory Class</option>
+                          <option value="practical">Practical Class</option>
+                        </select>
+                      </label>
                       <label className="text-xs font-bold text-slate-700">Subject
                         <select required value={assignment.subject_id} onChange={(event) => updateAssignment(groupIndex, assignmentIndex, { subject_id: event.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
                           <option value="">Select subject</option>
@@ -756,10 +745,10 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
                         </div>
                         <span className="font-normal text-slate-500">Select one or more teachers for this subject.</span>
                       </fieldset>
-                      <label className="text-xs font-bold text-slate-700">Classroom
+                      <label className="text-xs font-bold text-slate-700">Classroom / lab
                         <select value={assignment.room_id} onChange={(event) => updateAssignment(groupIndex, assignmentIndex, { room_id: event.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
                           <option value="">Unassigned</option>
-                          {activeRooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                          {activeRooms.map((item) => <option key={item.id} value={item.id}>{item.name}{item.room_type?.toLowerCase().includes("lab") ? " · Lab" : ""}</option>)}
                         </select>
                       </label>
                       <label className="text-xs font-bold text-slate-700">Notes
@@ -833,16 +822,22 @@ export default function TimetableBuilder({ onLegacy }: { onLegacy: () => void })
                 ))}
               </select>
             </label>
+            <label className="block text-sm font-bold text-slate-700">Class type
+              <select value={slotDraft.assignmentType} onChange={(event) => setSlotDraft({ ...slotDraft, assignmentType: event.target.value === "practical" ? "practical" : "theory" })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                <option value="theory">Theory Class</option>
+                <option value="practical">Practical Class</option>
+              </select>
+            </label>
             <label className="block text-sm font-bold text-slate-700">Teacher
               <select required value={slotDraft.teacherId} onChange={(event) => setSlotDraft({ ...slotDraft, teacherId: event.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
                 <option value="">Select teacher</option>
                 {activeTeachers.map((teacher) => <option key={teacher.id} value={teacher.id}>{teacher.short_name || teacher.name}</option>)}
               </select>
             </label>
-            <label className="block text-sm font-bold text-slate-700">Classroom <span className="font-normal text-slate-400">(optional)</span>
+            <label className="block text-sm font-bold text-slate-700">Classroom / lab <span className="font-normal text-slate-400">(optional)</span>
               <select value={slotDraft.roomId} onChange={(event) => setSlotDraft({ ...slotDraft, roomId: event.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
                 <option value="">Unassigned</option>
-                {activeRooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
+                {activeRooms.map((room) => <option key={room.id} value={room.id}>{room.name}{room.room_type?.toLowerCase().includes("lab") ? " · Lab" : ""}</option>)}
               </select>
             </label>
             <div className="flex justify-end gap-2">

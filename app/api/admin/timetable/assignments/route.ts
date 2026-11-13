@@ -2,6 +2,7 @@ import { requireAdmin } from "@/lib/auth";
 import { queryOne } from "@/lib/db";
 import { fail, ok } from "@/lib/http";
 import { asInteger, asString, normalizeSchoolDay } from "@/lib/validation";
+import { parseAssignmentType } from "@/lib/schedule-master";
 import { appendAssignment, TimetableConflictError } from "@/lib/timetable";
 
 function assignmentError(err: unknown) {
@@ -21,8 +22,10 @@ export async function POST(request: Request) {
     const timeSlotId = asInteger(body.time_slot_id);
     const day = normalizeSchoolDay(body.day_of_week || body.day);
     const subjectId = asInteger(body.subject_id);
+    const assignmentType = parseAssignmentType(body.assignment_type);
     const teacherId = asInteger(body.teacher_id);
     const roomId = asInteger(body.room_id);
+    if (!assignmentType) return fail("assignment_type must be 'theory' or 'practical'.");
     if (!versionId || !classId || !timeSlotId || !day || !subjectId || !teacherId) {
       return fail("version_id, class_id, day, time_slot_id, subject_id and teacher_id are required.");
     }
@@ -34,6 +37,7 @@ export async function POST(request: Request) {
       day,
       timeSlotId,
       subjectId,
+      assignmentType,
       teacherId,
       roomId,
       notes: asString(body.notes) || null,

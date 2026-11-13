@@ -6,6 +6,7 @@ import {
   DEFAULT_ADDITIONAL_COLUMN_HEADING,
   getSubjectColor,
   normalizeSchoolData,
+  type AssignmentType,
   type MasterScheduleData,
   type MasterScheduleEntry,
   type SchoolDay,
@@ -33,6 +34,7 @@ export type ConflictItem = {
 
 export type AssignmentInput = {
   subject_id: number | null;
+  assignment_type: AssignmentType;
   room_id: number | null;
   teacher_ids: number[];
   notes?: string | null;
@@ -59,6 +61,7 @@ type ScheduleAssignmentRow = {
   id: number;
   schedule_group_id: number;
   subject_id: number | null;
+  assignment_type: AssignmentType;
   room_id: number | null;
   notes: string | null;
 };
@@ -165,8 +168,8 @@ async function cloneVersion(
       for (const assignment of assignments as ScheduleAssignmentRow[]) {
         const assignmentId = await insertId(
           connection,
-          "INSERT INTO schedule_assignments (schedule_group_id, subject_id, room_id, notes) VALUES (?, ?, ?, ?)",
-          [groupId, assignment.subject_id, assignment.room_id, assignment.notes]
+          "INSERT INTO schedule_assignments (schedule_group_id, subject_id, assignment_type, room_id, notes) VALUES (?, ?, ?, ?, ?)",
+          [groupId, assignment.subject_id, assignment.assignment_type, assignment.room_id, assignment.notes]
         );
         const [teachers] = await connection.query("SELECT teacher_id FROM schedule_assignment_teachers WHERE assignment_id = ?", [assignment.id]);
         for (const teacher of teachers as Array<{ teacher_id: number }>) {
@@ -222,7 +225,7 @@ async function migrateLegacySchedules(connection: PoolConnection, versionId: num
     );
     const assignmentId = await insertId(
       connection,
-      "INSERT INTO schedule_assignments (schedule_group_id, subject_id, room_id, notes) VALUES (?, ?, ?, NULL)",
+      "INSERT INTO schedule_assignments (schedule_group_id, subject_id, assignment_type, room_id, notes) VALUES (?, ?, 'theory', ?, NULL)",
       [groupId, row.subject_id, roomId]
     );
     if (row.teacher_id !== null) {
@@ -273,6 +276,7 @@ type LoadedAssignment = {
   student_group_id: number | null;
   student_group_name: string | null;
   subject_id: number | null;
+  assignment_type: AssignmentType;
   subject_name: string | null;
   room_id: number | null;
   room: string | null;
@@ -291,7 +295,7 @@ async function loadAssignments(versionId: number, assignmentId?: number, teacher
   return query<LoadedAssignment>(
     `SELECT a.id, g.version_id, g.class_id, CONCAT(c.class_name, IF(c.section IS NULL OR c.section='', '', CONCAT('-', c.section))) AS class_name,
             g.id AS group_id, g.name AS group_name, g.student_group_id, sg.name AS student_group_name,
-            a.subject_id, sub.subject_name, a.room_id, r.name AS room, g.day_of_week, g.time_slot_id,
+            a.subject_id, a.assignment_type, sub.subject_name, a.room_id, r.name AS room, g.day_of_week, g.time_slot_id,
             ts.start_time, ts.end_time, ts.slot_order, a.notes,
             t.id AS teacher_ids, t.name AS teacher_names,
             COALESCE(NULLIF(t.short_name,''), t.name) AS teacher_shorts
@@ -327,6 +331,7 @@ function toScheduleEntry(
     student_group_name: row.student_group_name,
     subject_id: row.subject_id,
     subject_name: row.subject_name,
+    assignment_type: row.assignment_type,
     teacher_id: row.teacher_ids ? Number(row.teacher_ids) : null,
     teacher_name: row.teacher_shorts || row.teacher_names,
     teacher_names: row.teacher_names,
@@ -476,6 +481,7 @@ function toGroupInputs(groups: LoadedScheduleGroup[]): GroupInput[] {
     student_group_id: group.student_group_id,
     assignments: group.assignments.map((assignment) => ({
       subject_id: assignment.subject_id,
+      assignment_type: assignment.assignment_type,
       room_id: assignment.room_id,
       teacher_ids: assignment.teachers.map((teacher) => teacher.id),
       notes: assignment.notes,
@@ -702,8 +708,8 @@ export async function savePeriod(options: {
       for (const assignment of group.assignments) {
         const assignmentId = await insertId(
           connection,
-          "INSERT INTO schedule_assignments (schedule_group_id, subject_id, room_id, notes) VALUES (?, ?, ?, ?)",
-          [groupId, assignment.subject_id, assignment.room_id, assignment.notes ?? null]
+          "INSERT INTO schedule_assignments (schedule_group_id, subject_id, assignment_type, room_id, notes) VALUES (?, ?, ?, ?, ?)",
+          [groupId, assignment.subject_id, assignment.assignment_type, assignment.room_id, assignment.notes ?? null]
         );
         for (const teacherId of assignment.teacher_ids) {
           await connection.execute("INSERT INTO schedule_assignment_teachers (assignment_id, teacher_id) VALUES (?, ?)", [
@@ -744,6 +750,7 @@ export async function appendAssignment(options: {
   day: string;
   timeSlotId: number;
   subjectId: number;
+  assignmentType: AssignmentType;
   teacherId: number;
   roomId: number | null;
   notes?: string | null;
@@ -769,6 +776,7 @@ export async function appendAssignment(options: {
       student_group_id: target?.student_group_id ?? null,
       assignments: [{
         subject_id: options.subjectId,
+        assignment_type: options.assignmentType,
         room_id: options.roomId,
         teacher_ids: [options.teacherId],
         notes: options.notes ?? null,
@@ -789,8 +797,8 @@ export async function appendAssignment(options: {
     }
     const createdId = await insertId(
       connection,
-      "INSERT INTO schedule_assignments (schedule_group_id, subject_id, room_id, notes) VALUES (?, ?, ?, ?)",
-      [groupId, options.subjectId, options.roomId, options.notes ?? null]
+      "INSERT INTO schedule_assignments (schedule_group_id, subject_id, assignment_type, room_id, notes) VALUES (?, ?, ?, ?, ?)",
+      [groupId, options.subjectId, options.assignmentType, options.roomId, options.notes ?? null]
     );
     await connection.execute(
       "INSERT INTO schedule_assignment_teachers (assignment_id, teacher_id) VALUES (?, ?)",
@@ -814,6 +822,7 @@ export async function appendAssignment(options: {
 
 export async function updateAssignment(options: {
   assignmentId: number;
+  assignmentType?: AssignmentType;
   targetTeacherId?: number | null;
   subjectId: number;
   teacherId: number;
@@ -833,8 +842,9 @@ export async function updateAssignment(options: {
     group_name: string;
     student_group_id: number | null;
     notes: string | null;
+    assignment_type: AssignmentType;
   }>(
-    `SELECT a.id, a.schedule_group_id, a.notes, g.version_id, g.class_id, g.day_of_week, g.time_slot_id,
+    `SELECT a.id, a.schedule_group_id, a.notes, a.assignment_type, g.version_id, g.class_id, g.day_of_week, g.time_slot_id,
             g.name AS group_name, g.student_group_id
      FROM schedule_assignments a
      JOIN schedule_groups g ON g.id = a.schedule_group_id
@@ -873,6 +883,7 @@ export async function updateAssignment(options: {
       student_group_id: current.student_group_id,
       assignments: [{
         subject_id: options.subjectId,
+        assignment_type: options.assignmentType ?? current.assignment_type,
         room_id: options.roomId,
         teacher_ids: [options.teacherId],
         notes,
@@ -887,8 +898,8 @@ export async function updateAssignment(options: {
     if (shouldSplit) {
       assignmentId = await insertId(
         connection,
-        "INSERT INTO schedule_assignments (schedule_group_id, subject_id, room_id, notes) VALUES (?, ?, ?, ?)",
-        [current.schedule_group_id, options.subjectId, options.roomId, notes]
+        "INSERT INTO schedule_assignments (schedule_group_id, subject_id, assignment_type, room_id, notes) VALUES (?, ?, ?, ?, ?)",
+        [current.schedule_group_id, options.subjectId, options.assignmentType ?? current.assignment_type, options.roomId, notes]
       );
       await connection.execute(
         "DELETE FROM schedule_assignment_teachers WHERE assignment_id = ? AND teacher_id = ?",
@@ -896,8 +907,8 @@ export async function updateAssignment(options: {
       );
     } else {
       await connection.execute(
-        "UPDATE schedule_assignments SET subject_id = ?, room_id = ?, notes = ? WHERE id = ?",
-        [options.subjectId, options.roomId, notes, options.assignmentId]
+        "UPDATE schedule_assignments SET subject_id = ?, assignment_type = ?, room_id = ?, notes = ? WHERE id = ?",
+        [options.subjectId, options.assignmentType ?? current.assignment_type, options.roomId, notes, options.assignmentId]
       );
       await connection.execute("DELETE FROM schedule_assignment_teachers WHERE assignment_id = ?", [options.assignmentId]);
     }
@@ -1040,8 +1051,8 @@ export async function copyTimetable(options: {
         for (const assignment of assignments as ScheduleAssignmentRow[]) {
           const assignmentId = await insertId(
             connection,
-            "INSERT INTO schedule_assignments (schedule_group_id, subject_id, room_id, notes) VALUES (?, ?, ?, ?)",
-            [groupId, assignment.subject_id, assignment.room_id, assignment.notes]
+            "INSERT INTO schedule_assignments (schedule_group_id, subject_id, assignment_type, room_id, notes) VALUES (?, ?, ?, ?, ?)",
+            [groupId, assignment.subject_id, assignment.assignment_type, assignment.room_id, assignment.notes]
           );
           const [teachers] = await connection.query("SELECT teacher_id FROM schedule_assignment_teachers WHERE assignment_id = ?", [
             assignment.id,

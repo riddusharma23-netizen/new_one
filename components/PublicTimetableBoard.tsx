@@ -56,16 +56,25 @@ function TimetableCell({
       {cards.map(({ entry, key, teacherName }) => (
         <article key={key} className="w-full min-w-0 rounded-md border border-white/70 p-2 text-center shadow-sm" style={{ backgroundColor: entry.color }}>
           {entry.student_group_name || entry.group_name ? <p className="mb-1 break-words text-[9px] font-bold text-[#694237]">{entry.student_group_name || entry.group_name}</p> : null}
+          <p className={`mb-1 inline-flex rounded px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide ${
+            entry.assignment_type === "practical" ? "bg-orange-100 text-orange-800" : "bg-blue-100 text-blue-800"
+          }`}>
+            {entry.assignment_type === "practical" ? "Practical" : "Theory"}
+          </p>
           <p className="break-words text-[10px] font-extrabold uppercase leading-snug text-[#542b24]">{entry.subject_name || entry.display_label || "Session"}</p>
           <p className="mt-1 break-words text-[10px] leading-snug text-[#694237]">({teacherName})</p>
-          {entry.room ? <p className="mt-1 text-[9px] text-[#694237]">Room {entry.room}</p> : null}
+          {entry.room ? <p className="mt-1 text-[9px] text-[#694237]">Location: {entry.room}</p> : null}
         </article>
       ))}
     </div>
   );
 }
 
-function AdditionalColumnCell({ classId, entries, day }: { classId: number; entries: MasterScheduleEntry[]; day: string }) {
+function AdditionalColumnCell({ classId, entries, day }: {
+  classId: number;
+  entries: MasterScheduleEntry[];
+  day: string;
+}) {
   const seen = new Set<number>();
   const notedLessons = entries.filter((entry) => {
     if (entry.class_id !== classId || entry.day_of_week !== day || !entry.notes?.trim() || seen.has(entry.id)) return false;
@@ -123,12 +132,74 @@ export default function PublicTimetableBoard({ data }: { data: MasterScheduleDat
   const periods = activeSlots.filter((slot) => slot.period_number != null);
   const breaks = activeSlots.filter((slot) => slot.period_number == null && (slot.is_break || slot.is_lunch || slot.slot_type !== "REGULAR"));
   const selectedClass = classes.find((item) => item.id === selectedClassId) ?? classes[0];
-  const hasNotes = selectedClass
-    ? data.schedule_entries.some((entry) => entry.class_id === selectedClass.id && entry.notes?.trim())
-    : false;
-  const periodWidth = `${(hasNotes ? 78 : 91) / Math.max(periods.length, 1)}%`;
   const firstPeriod = periods[0];
   const lastPeriod = periods[periods.length - 1];
+
+  function renderTimetable() {
+    if (!selectedClass) return null;
+    const hasNotes = data.schedule_entries.some((entry) =>
+      entry.class_id === selectedClass.id &&
+      entry.notes?.trim()
+    );
+    const periodWidth = `${(hasNotes ? 78 : 91) / Math.max(periods.length, 1)}%`;
+
+    return (
+      <section className="overflow-hidden rounded-lg border border-[#f1d8c6] bg-white shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 bg-[linear-gradient(112deg,#b60f17,#df5b00)] px-3 py-2 text-white">
+          <h2 className="text-sm font-extrabold">{selectedClass.display_name} Timetable</h2>
+          <p className="text-[10px] font-semibold">{periods.length} Periods{firstPeriod && lastPeriod ? `  |  ${displayTime(firstPeriod.start_time)} – ${displayTime(lastPeriod.end_time)}` : ""}</p>
+        </div>
+        <div className="overflow-x-auto overscroll-x-contain">
+          <table className="w-full min-w-[1050px] table-fixed border-collapse text-left">
+            <caption className="sr-only">{selectedClass.display_name} weekly timetable for academic year {data.academic_year}</caption>
+            <colgroup>
+              <col style={{ width: "9%" }} />
+              {periods.map((slot) => <col key={slot.id} style={{ width: periodWidth }} />)}
+              {hasNotes ? <col style={{ width: "13%" }} /> : null}
+            </colgroup>
+            <thead>
+              <tr className="bg-[#fff3e8] text-[10px] text-[#694237]">
+                <th scope="col" className="border-b border-r border-[#f2ddc5] px-3 py-2 text-center font-extrabold">Day</th>
+                {periods.map((slot, index) => (
+                  <th key={slot.id} scope="col" className="border-b border-r border-[#f2ddc5] px-2 py-2 text-center font-extrabold">
+                    <p>Period {slot.period_number ?? index + 1}</p>
+                    <p className="mt-1 text-[9px] font-medium text-[#80594d]">{displayTime(slot.start_time)} – {displayTime(slot.end_time)}</p>
+                  </th>
+                ))}
+                {hasNotes ? <th scope="col" className="border-b border-r border-[#f2ddc5] px-2 py-2 text-center font-extrabold">{data.additional_column_heading || "Notes"}</th> : null}
+              </tr>
+            </thead>
+            <tbody>
+              {DAYS.map((day) => (
+                <tr key={day} className="align-middle even:bg-[#fffdfb] hover:bg-[#fff8f1]">
+                  <th scope="row" className="border-b border-r border-[#f2ddc5] bg-white px-3 py-3 text-center text-xs font-extrabold text-[#694237]">{day}</th>
+                  {periods.map((slot) => (
+                    <td key={`${day}-${slot.id}`} className="border-b border-r border-[#f2ddc5] p-1 align-middle">
+                      <TimetableCell
+                        classId={selectedClass.id}
+                        slot={slot}
+                        entries={data.schedule_entries}
+                        day={day}
+                      />
+                    </td>
+                  ))}
+                  {hasNotes ? (
+                    <td className="border-b border-r border-[#f2ddc5] p-1 align-middle">
+                      <AdditionalColumnCell
+                        classId={selectedClass.id}
+                        entries={data.schedule_entries}
+                        day={day}
+                      />
+                    </td>
+                  ) : null}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -162,53 +233,9 @@ export default function PublicTimetableBoard({ data }: { data: MasterScheduleDat
 
       <BreakStrip slots={breaks} />
 
-      {selectedClass ? (
-        <section className="overflow-hidden rounded-lg border border-[#f1d8c6] bg-white shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-2 bg-[linear-gradient(112deg,#b60f17,#df5b00)] px-3 py-2 text-white">
-            <h2 className="text-sm font-extrabold">{selectedClass.display_name} Timetable</h2>
-            <p className="text-[10px] font-semibold">{periods.length} Periods{firstPeriod && lastPeriod ? `  |  ${displayTime(firstPeriod.start_time)} – ${displayTime(lastPeriod.end_time)}` : ""}</p>
-          </div>
-          <div className="overflow-x-auto overscroll-x-contain">
-            <table className="w-full min-w-[1050px] table-fixed border-collapse text-left">
-              <caption className="sr-only">{selectedClass.display_name} weekly timetable for academic year {data.academic_year}</caption>
-              <colgroup>
-                <col style={{ width: "9%" }} />
-                {periods.map((slot) => <col key={slot.id} style={{ width: periodWidth }} />)}
-                {hasNotes ? <col style={{ width: "13%" }} /> : null}
-              </colgroup>
-              <thead>
-                <tr className="bg-[#fff3e8] text-[10px] text-[#694237]">
-                  <th scope="col" className="border-b border-r border-[#f2ddc5] px-3 py-2 text-center font-extrabold">Day</th>
-                  {periods.map((slot, index) => (
-                    <th key={slot.id} scope="col" className="border-b border-r border-[#f2ddc5] px-2 py-2 text-center font-extrabold">
-                      <p>Period {slot.period_number ?? index + 1}</p>
-                      <p className="mt-1 text-[9px] font-medium text-[#80594d]">{displayTime(slot.start_time)} – {displayTime(slot.end_time)}</p>
-                    </th>
-                  ))}
-                  {hasNotes ? <th scope="col" className="border-b border-r border-[#f2ddc5] px-2 py-2 text-center font-extrabold">{data.additional_column_heading || "Notes"}</th> : null}
-                </tr>
-              </thead>
-              <tbody>
-                {DAYS.map((day) => (
-                  <tr key={day} className="align-middle even:bg-[#fffdfb] hover:bg-[#fff8f1]">
-                    <th scope="row" className="border-b border-r border-[#f2ddc5] bg-white px-3 py-3 text-center text-xs font-extrabold text-[#694237]">{day}</th>
-                    {periods.map((slot) => (
-                      <td key={`${day}-${slot.id}`} className="border-b border-r border-[#f2ddc5] p-1 align-middle">
-                        <TimetableCell classId={selectedClass.id} slot={slot} entries={data.schedule_entries} day={day} />
-                      </td>
-                    ))}
-                    {hasNotes ? (
-                      <td className="border-b border-r border-[#f2ddc5] p-1 align-middle">
-                        <AdditionalColumnCell classId={selectedClass.id} entries={data.schedule_entries} day={day} />
-                      </td>
-                    ) : null}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ) : null}
+      <div className="space-y-4">
+        {renderTimetable()}
+      </div>
 
       {!selectedClass ? <p className="rounded-lg border border-[#f1d8c6] bg-white p-8 text-center text-sm text-[#80594d]">No classes are available for this academic year.</p> : null}
 

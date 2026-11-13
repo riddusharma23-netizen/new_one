@@ -1,11 +1,13 @@
 import { requireAdmin } from "@/lib/auth";
 import { fail, ok } from "@/lib/http";
 import { asInteger, asString, normalizeSchoolDay } from "@/lib/validation";
+import { parseAssignmentType } from "@/lib/schedule-master";
 import { TimetableConflictError, loadPeriodGroups, savePeriod, type GroupInput } from "@/lib/timetable";
 
-function parseGroups(value: unknown): GroupInput[] {
+function parseGroups(value: unknown): GroupInput[] | null {
   if (!Array.isArray(value)) return [];
-  return value.map((item) => {
+  let invalidAssignmentType = false;
+  const groups = value.map((item) => {
     const row = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
     const assignments = Array.isArray(row.assignments) ? row.assignments : [];
     return {
@@ -13,11 +15,14 @@ function parseGroups(value: unknown): GroupInput[] {
       student_group_id: asInteger(row.student_group_id),
       assignments: assignments.map((assignment) => {
         const entry = assignment && typeof assignment === "object" ? (assignment as Record<string, unknown>) : {};
+        const assignmentType = parseAssignmentType(entry.assignment_type);
+        if (!assignmentType) invalidAssignmentType = true;
         const teacherIds = Array.isArray(entry.teacher_ids)
           ? entry.teacher_ids.map((id) => asInteger(id)).filter((id): id is number => Boolean(id))
           : [];
         return {
           subject_id: asInteger(entry.subject_id),
+          assignment_type: assignmentType ?? "theory",
           room_id: asInteger(entry.room_id),
           teacher_ids: teacherIds,
           notes: asString(entry.notes) || null,
@@ -25,6 +30,7 @@ function parseGroups(value: unknown): GroupInput[] {
       }),
     };
   });
+  return invalidAssignmentType ? null : groups;
 }
 
 export async function GET(request: Request) {
@@ -50,6 +56,7 @@ export async function POST(request: Request) {
     const day = normalizeSchoolDay(body.day_of_week || body.day);
     if (!versionId || !classId || !timeSlotId || !day) return fail("version_id, class_id, day and time_slot_id are required.");
     const groups = parseGroups(body.groups);
+    if (!groups) return fail("Each assignment_type must be 'theory' or 'practical'.");
     const override = body.override === true;
     const canOverride = session.role === "SUPER_ADMIN" || session.role === "ADMIN";
     const saved = await savePeriod({

@@ -12,18 +12,21 @@ npm.cmd run dev
 
 Open `http://localhost:3000`.
 
-## MySQL setup
+## MySQL setup with XAMPP
 
-1. Install MySQL 8 or newer.
-2. Create the schema and development data:
+1. Start Apache and MySQL from the XAMPP Control Panel.
+2. Import `database/schema.sql` and then `database/seed.sql` using phpMyAdmin, or run:
 
 ```bash
-mysql -u root -p < database/schema.sql
-mysql -u root -p champidevi < database/seed.sql
+mysql -u root < database/schema.sql
+mysql -u root < database/seed.sql
 ```
 
-3. Set `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and `AUTH_SECRET` in `.env`.
-4. Change the development admin password before production use. The seed login is `admin@champidevi.local` / `Admin@12345`.
+The included `.env.example` uses XAMPP's default MySQL host, port, and root user with no password. Copy it to `.env` and adjust it if your XAMPP MySQL settings differ. The database name is `cdic`.
+
+The timetable schema is upgraded automatically when the timetable APIs run. Existing assignments default to Theory Class; practical assignments are stored in the same versioned timetable and are included when a version is published.
+
+Change the development admin password and replace `AUTH_SECRET` with a unique random value before production use. The seed login is `admin@champidevi.local` / `Admin@12345`.
 
 ## Production deployment
 

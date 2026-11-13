@@ -71,9 +71,14 @@ function AssignmentCard({
   return (
     <article className="w-full min-w-0 rounded-md border border-white/70 p-2 text-center shadow-sm" style={{ backgroundColor: background }}>
       {groupLabel ? <p className="mb-1 break-words text-[9px] font-bold text-[#694237]">{groupLabel}</p> : null}
+      <p className={`mb-1 inline-flex rounded px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide ${
+        slot.entry.assignment_type === "practical" ? "bg-orange-100 text-orange-800" : "bg-blue-100 text-blue-800"
+      }`}>
+        {slot.entry.assignment_type === "practical" ? "Practical" : "Theory"}
+      </p>
       <p className="break-words text-[10px] font-extrabold uppercase leading-snug text-[#542b24]">{slot.subject}</p>
       <p className="mt-1 break-words text-[10px] leading-snug text-[#694237]">({slot.teacherName})</p>
-      {slot.entry.room ? <p className="mt-1 text-[9px] text-[#694237]">Room {slot.entry.room}</p> : null}
+      {slot.entry.room ? <p className="mt-1 text-[9px] text-[#694237]">Location: {slot.entry.room}</p> : null}
       {editable ? (
         <div className="mt-1.5 flex items-center justify-center gap-1">
           {onEdit ? (
@@ -135,14 +140,92 @@ export default function TimetableBoard({ data, editable = false, onClassChange, 
   const start = periods[0]?.start_time;
   const end = periods.at(-1)?.end_time;
 
-  const periodsByDay = useMemo(() => {
-    const days: { [day: string]: { periods: { [periodId: number]: PeriodSlot[] } } } = {};
-    for (const day of DAYS) days[day] = { periods: periodsForDay(entries, day) };
-    return days;
-  }, [entries]);
+  function renderTimetable() {
+    const periodsByDay: { [day: string]: { periods: { [periodId: number]: PeriodSlot[] } } } = {};
+    for (const day of DAYS) periodsByDay[day] = { periods: periodsForDay(entries, day) };
+    const cellSlots = (day: (typeof DAYS)[number], slot: MasterTimeSlot) =>
+      slotsForColumn(periodsByDay[day]?.periods ?? {}, slot);
 
-  function cellSlots(day: (typeof DAYS)[number], slot: MasterTimeSlot) {
-    return slotsForColumn(periodsByDay[day]?.periods ?? {}, slot);
+    return (
+      <section className="overflow-hidden rounded-lg border border-[#f2c78e] bg-white shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 bg-[linear-gradient(90deg,#b60f17,#df5b00)] px-3 py-2 text-white">
+          <h2 className="text-base font-extrabold">{currentClass?.display_name} Timetable</h2>
+          <div className="flex items-center gap-2 text-xs font-medium">
+            <span>{periods.length} Periods</span>
+            {start && end ? <><span className="opacity-60">|</span><span>{displayTime(start)} – {displayTime(end)}</span></> : null}
+          </div>
+        </div>
+
+        <div className="hidden overflow-x-auto md:block">
+          <table className="min-w-[1080px] w-full border-collapse text-center text-[#542b24]">
+            <thead>
+              <tr className="bg-[#fff3e8]">
+                <th className="w-[110px] border-b border-r border-[#f2ddc5] px-3 py-2 text-xs font-extrabold">Day</th>
+                {periods.map((slot) => (
+                  <th key={slot.id} className="min-w-[130px] border-b border-r border-[#f2ddc5] px-2 py-2 text-xs font-extrabold last:border-r-0">
+                    <p>Period {slot.period_number}</p>
+                    <p className="mt-1 text-[10px] font-medium">{displayTime(slot.start_time)} – {displayTime(slot.end_time)}</p>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {DAYS.map((day) => (
+                <tr key={day}>
+                  <th scope="row" className="border-b border-r border-[#f2ddc5] bg-white px-3 py-2 text-left text-xs font-extrabold">{day}</th>
+                  {periods.map((slot) => {
+                    const items = cellSlots(day, slot);
+                    return (
+                      <td key={`${day}-${slot.id}`} className="border-b border-r border-[#f2ddc5] p-1 align-top last:border-r-0">
+                        {items.length ? (
+                          <div className="space-y-1">
+                            {items.map((item) => (
+                              <AssignmentCard key={item.id} slot={item} day={day} editable={editable} onEdit={onEdit} onDelete={onDelete} />
+                            ))}
+                          </div>
+                        ) : editable ? null : <span className="text-sm text-[#bd9e8c]" aria-label="No class scheduled">—</span>}
+                        {editable && currentClass && onAdd ? (
+                          <AssignButton hasItems={items.length > 0} onClick={() => onAdd(currentClass.id, day, Number(slot.period_number))} />
+                        ) : null}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="space-y-2 p-2 md:hidden">
+          {DAYS.map((day) => (
+            <article key={day} className="overflow-hidden rounded-md border border-[#f2ddc5]">
+              <h3 className="bg-[#fff3e8] px-3 py-1.5 text-xs font-extrabold">{day}</h3>
+              {periods.map((slot) => {
+                const items = cellSlots(day, slot);
+                return (
+                  <div key={slot.id} className="border-t border-[#f2ddc5] px-2 py-1.5 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="shrink-0 text-[10px] font-semibold">P{slot.period_number} · {displayTime(slot.start_time)}</span>
+                      {!items.length && !editable ? <p className="text-[10px] text-[#bd9e8c]">—</p> : null}
+                    </div>
+                    {items.length ? (
+                      <div className="mt-1 space-y-1">
+                        {items.map((item) => (
+                          <AssignmentCard key={item.id} slot={item} day={day} editable={editable} onEdit={onEdit} onDelete={onDelete} />
+                        ))}
+                      </div>
+                    ) : null}
+                    {editable && currentClass && onAdd ? (
+                      <AssignButton hasItems={items.length > 0} onClick={() => onAdd(currentClass.id, day, Number(slot.period_number))} />
+                    ) : null}
+                  </div>
+                );
+              })}
+            </article>
+          ))}
+        </div>
+      </section>
+    );
   }
 
   if (!classes.length) {
@@ -184,90 +267,9 @@ export default function TimetableBoard({ data, editable = false, onClassChange, 
         </section>
       ) : null}
 
-      <section className="overflow-hidden rounded-lg border border-[#f2c78e] bg-white shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2 bg-[linear-gradient(90deg,#b60f17,#df5b00)] px-3 py-2 text-white">
-          <h2 className="text-base font-extrabold">{currentClass?.display_name} Timetable</h2>
-          <div className="flex items-center gap-2 text-xs font-medium">
-            <span>{periods.length} Periods</span>
-            {start && end ? <><span className="opacity-60">|</span><span>{displayTime(start)} – {displayTime(end)}</span></> : null}
-          </div>
-        </div>
-
-        <div className="hidden overflow-x-auto md:block">
-          <table className="min-w-[1080px] w-full border-collapse text-center text-[#542b24]">
-            <thead>
-              <tr className="bg-[#fff3e8]">
-                <th className="w-[110px] border-b border-r border-[#f2ddc5] px-3 py-2 text-xs font-extrabold">Day</th>
-                {periods.map((slot) => (
-                  <th key={slot.id} className="min-w-[130px] border-b border-r border-[#f2ddc5] px-2 py-2 text-xs font-extrabold last:border-r-0">
-                    <p>Period {slot.period_number}</p>
-                    <p className="mt-1 text-[10px] font-medium">{displayTime(slot.start_time)} – {displayTime(slot.end_time)}</p>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {DAYS.map((day) => (
-                <tr key={day}>
-                  <th scope="row" className="border-b border-r border-[#f2ddc5] bg-white px-3 py-2 text-left text-xs font-extrabold">{day}</th>
-                  {periods.map((slot) => {
-                    const items = cellSlots(day, slot);
-                    return (
-                      <td
-                        key={`${day}-${slot.id}`}
-                        className="border-b border-r border-[#f2ddc5] p-1 align-top last:border-r-0"
-                      >
-                        {items.length ? (
-                          <div className="space-y-1">
-                            {items.map((item) => (
-                              <AssignmentCard key={item.id} slot={item} day={day} editable={editable} onEdit={onEdit} onDelete={onDelete} />
-                            ))}
-                          </div>
-                        ) : editable ? null : <span className="text-sm text-[#bd9e8c]" aria-label="No class scheduled">—</span>}
-                        {editable && currentClass && onAdd ? (
-                          <AssignButton hasItems={items.length > 0} onClick={() => onAdd(currentClass.id, day, Number(slot.period_number))} />
-                        ) : null}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="space-y-2 p-2 md:hidden">
-          {DAYS.map((day) => (
-            <article key={day} className="overflow-hidden rounded-md border border-[#f2ddc5]">
-              <h3 className="bg-[#fff3e8] px-3 py-1.5 text-xs font-extrabold">{day}</h3>
-              {periods.map((slot) => {
-                const items = cellSlots(day, slot);
-                return (
-                  <div
-                    key={slot.id}
-                    className="border-t border-[#f2ddc5] px-2 py-1.5 text-xs"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="shrink-0 text-[10px] font-semibold">P{slot.period_number} · {displayTime(slot.start_time)}</span>
-                      {!items.length && !editable ? <p className="text-[10px] text-[#bd9e8c]">—</p> : null}
-                    </div>
-                    {items.length ? (
-                      <div className="mt-1 space-y-1">
-                        {items.map((item) => (
-                          <AssignmentCard key={item.id} slot={item} day={day} editable={editable} onEdit={onEdit} onDelete={onDelete} />
-                        ))}
-                      </div>
-                    ) : null}
-                    {editable && currentClass && onAdd ? (
-                      <AssignButton hasItems={items.length > 0} onClick={() => onAdd(currentClass.id, day, Number(slot.period_number))} />
-                    ) : null}
-                  </div>
-                );
-              })}
-            </article>
-          ))}
-        </div>
-      </section>
+      <div className="space-y-4">
+        {renderTimetable()}
+      </div>
     </>
   );
 }

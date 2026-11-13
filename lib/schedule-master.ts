@@ -5,6 +5,12 @@ export const DEFAULT_ADDITIONAL_COLUMN_HEADING = "Notes";
 export const DEFAULT_DAYS = SCHOOL_DAYS;
 
 export type SchoolDay = (typeof DEFAULT_DAYS)[number];
+export type AssignmentType = "theory" | "practical";
+
+export function parseAssignmentType(value: unknown): AssignmentType | null {
+  if (value === undefined) return "theory";
+  return value === "theory" || value === "practical" ? value : null;
+}
 
 export type MasterTimeSlot = {
   id: number;
@@ -72,6 +78,7 @@ export type MasterScheduleEntry = {
   time_slot_id?: number | null;
   subject_id?: number | null;
   subject_name?: string | null;
+  assignment_type: AssignmentType;
   teacher_id?: number | null;
   teacher_name?: string | null;
   room?: string | null;
@@ -229,6 +236,7 @@ export function normalizeSchoolData(input: {
     const teacherName = String(entry.teacher_name ?? teachers.find((item) => item.id === Number(entry.teacher_id))?.name ?? "Teacher");
     const className = String(entry.class_name ?? classes.find((item) => item.id === Number(entry.class_id))?.display_name ?? "Class");
     const color = String(entry.color ?? subjects.find((item) => item.id === Number(entry.subject_id))?.color ?? getSubjectColor(subjectName));
+    const assignmentType: AssignmentType = entry.assignment_type === "practical" ? "practical" : "theory";
 
     return {
       id: Number(entry.id ?? index + 1),
@@ -238,6 +246,7 @@ export function normalizeSchoolData(input: {
       group_name: entry.group_name ? String(entry.group_name) : null,
       subject_id: entry.subject_id ? Number(entry.subject_id) : null,
       subject_name: subjectName,
+      assignment_type: assignmentType,
       teacher_id: entry.teacher_id ? Number(entry.teacher_id) : null,
       teacher_name: teacherName,
       room: entry.room ? String(entry.room) : null,

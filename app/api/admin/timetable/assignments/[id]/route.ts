@@ -2,6 +2,7 @@ import { requireAdmin } from "@/lib/auth";
 import { fail, ok } from "@/lib/http";
 import { getIdParam } from "@/lib/list";
 import { asInteger, asString } from "@/lib/validation";
+import { parseAssignmentType } from "@/lib/schedule-master";
 import { deleteAssignment, TimetableConflictError, updateAssignment } from "@/lib/timetable";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -21,10 +22,15 @@ export async function PUT(request: Request, context: Ctx) {
   try {
     const body = (await request.json()) as Record<string, unknown>;
     const subjectId = asInteger(body.subject_id);
+    const assignmentType = body.assignment_type === undefined ? undefined : parseAssignmentType(body.assignment_type);
     const teacherId = asInteger(body.teacher_id);
+    if (assignmentType === null) {
+      return fail("assignment_type must be 'theory' or 'practical'.");
+    }
     if (!subjectId || !teacherId) return fail("subject_id and teacher_id are required.");
     const saved = await updateAssignment({
       assignmentId: id,
+      assignmentType,
       targetTeacherId: asInteger(body.target_teacher_id),
       subjectId,
       teacherId,

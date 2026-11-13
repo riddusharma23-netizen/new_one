@@ -194,6 +194,7 @@ export async function ensureTimetableSchema() {
         id INT UNSIGNED NOT NULL AUTO_INCREMENT,
         schedule_group_id INT UNSIGNED NOT NULL,
         subject_id INT UNSIGNED NULL,
+        assignment_type ENUM('theory', 'practical') NOT NULL DEFAULT 'theory',
         room_id INT UNSIGNED NULL,
         notes TEXT NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -201,6 +202,10 @@ export async function ensureTimetableSchema() {
         PRIMARY KEY (id),
         KEY idx_schedule_assignments_group (schedule_group_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+    );
+    await run(
+      connection,
+      "ALTER TABLE schedule_assignments ADD COLUMN assignment_type ENUM('theory', 'practical') NOT NULL DEFAULT 'theory'"
     );
 
     await run(
